@@ -17,7 +17,7 @@ public class EthereumUtil {
     }
 
     /**
-     * 获取data数据的前4 byte
+     * 获取data数据的前4 bytes
      *
      * @param data
      * @return
@@ -62,5 +62,33 @@ public class EthereumUtil {
             hex = hex + "0";
         }
         return hex;
+    }
+
+    /**
+     * ABI
+     * 以下函数名为dynamic
+     * bytes
+     * string
+     * T[] for any T
+     * T[k] for any dynamic T and any k >= 0
+     * (T1,...,Tk) if Ti is dynamic for some 1 <= i <= k
+     * @param funcName
+     * @return
+     */
+    public static boolean isDynamic(String funcName){
+        boolean flag = false;
+        if(funcName.contains("bytes")){
+            flag = true;
+        }
+
+        if(funcName.contains("string")){
+            flag = true;
+        }
+
+        if(funcName.contains("[")){
+            flag = true;
+        }
+
+        return flag;
     }
 }

@@ -6,7 +6,7 @@ import java.math.BigInteger;
 
 public class EthereumUtilTest {
     public static void main(String[] args) {
-        testNumber2Byte32();
+        testFuncHash();
     }
 
     /**
@@ -27,9 +27,11 @@ public class EthereumUtilTest {
     /**
      * changeShares(address,uint256)  5634c592
      * getBalance(address)  f8b2cb4f
+     * addA(uint256[]) a91d99d2
      */
     public static void testFuncHash(){
         System.out.println(EthereumUtil.funcHash("changeShares(address,uint256)"));
         System.out.println(EthereumUtil.funcHash("getBalance(address)"));
+        System.out.println(EthereumUtil.funcHash("addA(uint256[])"));
     }
 }
