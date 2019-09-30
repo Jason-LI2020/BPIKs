@@ -123,9 +123,6 @@ public class HashUtil {
         return encodestr;
     }
 
-
-
-
     private static String byte2Hex(byte[] bytes){
         StringBuffer stringBuffer = new StringBuffer();
         String temp = null;

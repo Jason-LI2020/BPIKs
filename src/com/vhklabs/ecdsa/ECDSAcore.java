@@ -85,7 +85,7 @@ public class ECDSAcore {
 //            flag = true;
 //        }
 
-        return n.divide(BigInteger.TWO).compareTo(s) < 0;
+        return n.divide(new BigInteger("2")).compareTo(s) < 0;
     }
 
 
