@@ -53,6 +53,29 @@ public class ECDSAcore {
         return formatSign(signature);
     }
 
+    public String[] signWithAssignedK(String message,String privateKey, BigInteger k){
+        String[] signature = new String[2];
+        BigInteger r, s;
+        do {
+
+            //BigInteger k = new BigInteger(HashUtil.getSHA(Math.random() + System.currentTimeMillis() + "THHAhshjaYYHJSA^HGHSA", "SHA-256"), 16);
+            r = fastMultiply(k).getX().mod(p);
+            s = (new BigInteger(message, 16).add(new BigInteger(privateKey, 16).multiply(r))).multiply(k.modInverse(n)).mod(n);
+
+            //standrad bitcoin signature SIG is <r><s> concatenated together.
+            // We need to check s < N/2 where N is the curve order, .
+            // If s>N/2, then s = N-s
+//        if (n.divide(BigInteger.TWO).compareTo(s) < 0) {
+//            s = n.subtract(s);
+//        }
+
+            signature[0] = r.toString(16);
+            signature[1] = s.toString(16);
+
+        }while (isValidSignature(r,s));
+        return formatSign(signature);
+    }
+
     /**
      * signature 补0
      * @param signature
