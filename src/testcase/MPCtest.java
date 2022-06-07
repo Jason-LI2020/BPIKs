@@ -8,6 +8,7 @@ import com.vhklabs.ecdsa.utils.HEX;
 import com.vhklabs.ecdsa.utils.HashUtil;
 
 import java.math.BigInteger;
+import java.util.Random;
 
 
 public class MPCtest {
@@ -31,9 +32,9 @@ public class MPCtest {
         // 3. 不能使用确定性k，需要一个好的随机数生成器来生成k
 
         // 对于2/2签名则只需要1轮通信：
-        // 1.前端将用户生成的随机点R3传给后端（P3不需要生成，但也需要传给后端）
-        // 2.后端生成用户的 R4，P4，计算公共哈希 z34和后端的签名 s4，并将R4，P4，z34和s4传给前端
-        // 3.前端可以验证z34，并计算用户端的签名s3，然后合并签名 s34，并计算R34，然后将（R34，s34）合并为联合地址的签名
+        // 1.前端将用户生成的随机点R1传给后端（P1不需要生成，但也需要传给后端）
+        // 2.后端生成用户的 R2，P2，计算公共哈希 z和后端的签名 s2，并将R2，P2，z和s2传给前端
+        // 3.前端可以验证z，并计算用户端的签名s1，然后合并签名 s，并计算R，然后将（R，s）合并为联合地址的签名
         schnorr22();
  
         System.out.println("==========================  ECDSA: Mulsig 2/2 sign  ===============================");
@@ -42,12 +43,56 @@ public class MPCtest {
         // 解决Schnor签名中 流氓密钥攻击 的问题
         mulsig22();
 
+        System.out.println("==========================  ECDSA: MPC 2/2 sign  ===============================");
+        // https://mp.weixin.qq.com/s?__biz=MzI4MzUxMDI3NQ==&mid=2247484200&idx=1&sn=deabd67cc8741f3668a2fc07afa912fa&chksm=eb88d044dcff595258ea48079b3a41418ed5c3e45b53cc1b72d1f470a6ce76762c724d08af3a&scene=21#wechat_redirect
+        // si=(h+di*r)/k, k= k1+k2
+        // s = s1 + s2 - h/k = (h+(d1+d2)*r)/k
+        // 需要处理整数除法截断的问题和k值暴露的问题
+        // 后面的推到过程涉及到 （1/k)*G, 1/k 取整等于0？
+        ecdsaMpc();
+
+        boolean res = isPrime(53);
+        System.out.println(res);
+
+        int prime = getPrime(10);
+        System.out.println(prime);
+
+
 
      
 
 
 
     }
+
+    // ==========================   Enc   =============================
+    public static boolean isPrime (int x) {
+        if (x == 1) return false;
+        for (int i = 2; i * i <= x; ++i) {
+            if (x%i == 0) return false;
+        }
+        return true;
+    } 
+
+    public static int getPrime (int length) {
+        int res = 0;
+        Random rd = new Random();
+        do {
+            res = 1;
+            for (int i = 0; i < length -2; ++i) {
+                res *= 2;
+                res += rd.nextInt(100);
+            }
+            res *= 2;
+            res += 1;
+        } while (!isPrime(res));
+        return res;
+    }
+
+
+
+
+    // =================================================================
 
     private static void ecdsaClassical() {
         ECDSAcore acore = new ECDSAcore();
@@ -184,6 +229,39 @@ public class MPCtest {
         System.out.println(sG_);
 
     }
+
+
+    private static void ecdsaMpc() {
+        ECDSAcore acore = new ECDSAcore();
+        String message = "359d88771ebbbdefd2356a805af66b4243ab5ca30bb34fe154a0bd49fc4b9b40";
+
+        // 1. 给A和B指定key1，key2 和 随机数k1, k2
+        BigInteger key1 = new BigInteger("333", 16);
+        BigInteger key2 = new BigInteger("555", 16);
+        BigInteger k1 = new BigInteger("3", 16); 
+        BigInteger k2 = new BigInteger("5", 16); 
+        
+        // 2. 根据两个private key计算出联合地址
+        Point point1 = acore.fastMultiply(key1);
+        Point point2 = acore.fastMultiply(key2);
+        Point point3 = acore.add(point1, point2);
+
+        // 3. 计算 r = (k1*G + k2*G)的x坐标
+        String r = acore.add(acore.fastMultiply(k1), acore.fastMultiply(k2)).getX().toString(16);
+        
+        // 4. 计算公共的 k = k1+k2
+        BigInteger k = k1.add(k2);
+
+        // 5. 计算联合签名 s = s1 + s2 - (h/k), 
+        BigInteger h = new BigInteger(message,16);
+        BigInteger s1 = (h.add(key1.multiply(new BigInteger(r,16))));
+        BigInteger s2 = (h.add(key2.multiply(new BigInteger(r,16))));
+        String s = (s1.add(s2).subtract(h)).divide(k).toString(16);
+
+        // 6. 验证签名 
+        acore.verify(message, r, s, point3);
+    }
+
 
 
 
