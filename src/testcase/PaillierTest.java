@@ -68,17 +68,25 @@ public class PaillierTest {
 
 		
         System.out.println("======= test subtraction ========");
+        a = PaillierCipher.encrypt(a, pk);   
 		a = PaillierCipher.subtract(a, PaillierCipher.encrypt(BigInteger.TEN, pk), pk);// 20 - 10
 		a = PaillierCipher.decrypt(a, sk);
+        System.out.println(a);
+
 
 		
-		// // Test Multiplication
-		// a = PaillierCipher.multiply(a, BigInteger.TEN, pk); // 10 * 10
-		// // assertEquals(new BigInteger("100"), PaillierCipher.decrypt(a, sk));
+		System.out.println("======= test multiplication ========");
+        a = PaillierCipher.encrypt(a, pk);   
+		a = PaillierCipher.multiply(a, BigInteger.TEN, pk); // 10 * 10
+        a = PaillierCipher.decrypt(a, sk);
+        System.out.println(a);
+
 		
-		// // Test Division
-		// a = PaillierCipher.divide(a, new BigInteger("2"), pk); // 100/2 
-		// // assertEquals(new BigInteger("50"), PaillierCipher.decrypt(a, sk));
+		System.out.println("======= test division ========");
+        a = PaillierCipher.encrypt(a, pk);   
+		a = PaillierCipher.divide(a, new BigInteger("2"), pk); // 100/2 
+        a = PaillierCipher.decrypt(a, sk);
+        System.out.println(a);
 
 
     }

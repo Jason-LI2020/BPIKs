@@ -7,12 +7,19 @@ import com.vhklabs.ecdsa.utils.Base58;
 import com.vhklabs.ecdsa.utils.HEX;
 import com.vhklabs.ecdsa.utils.HashUtil;
 
+import security.misc.HomomorphicException;
+
+import security.paillier.PaillierCipher;
+import security.paillier.PaillierKeyPairGenerator;
+import security.paillier.PaillierPrivateKey;
+import security.paillier.PaillierPublicKey;
+
 import java.math.BigInteger;
-import java.util.Random;
+import java.security.KeyPair;
 
 
 public class MPCtest {
-    public static void main(String[] args) {
+         public static void main(String[] args) throws HomomorphicException{
 
         System.out.println("==========================  ECDSA: Classical  ====================================");
         // https://okg-block.larksuite.com/docs/docuso6z74HwtSnPJzBCA5iU6Dl
@@ -48,14 +55,27 @@ public class MPCtest {
         // si=(h+di*r)/k, k= k1+k2
         // s = s1 + s2 - h/k = (h+(d1+d2)*r)/k
         // 需要处理整数除法截断的问题和k值暴露的问题
-        // 后面的推到过程涉及到 （1/k)*G, 1/k 取整等于0？
+        // 后面的推导过程涉及到 （1/k)*G, 1/k 为k的模逆
         ecdsaMpc();
 
-        boolean res = isPrime(53);
-        System.out.println(res);
 
-        int prime = getPrime(10);
-        System.out.println(prime);
+        System.out.println("==========================  ECDSA: Lindell signle sign  ===============================");
+        // https://medium.com/cryptoadvance/ecdsa-is-not-that-bad-two-party-signing-without-schnorr-or-bls-1941806ec36f
+        // https://eprint.iacr.org/2017/552.pdf
+        // P1=pk1×G、P2=pk2×G
+        // R1=k1×G 、 R2=k2×G
+        // P=pk1×P2=pk2×P1=pk1⋅pk2×G
+        // R=k1×R2=k2×R1=k1⋅k2×G
+        // s=(z+r⋅pk1⋅pk2)/k1/k2
+        lindellSingle();
+
+        System.out.println("==========================  ECDSA: Lindell 2/2 sign  ===============================");
+        // https://medium.com/cryptoadvance/ecdsa-is-not-that-bad-two-party-signing-without-schnorr-or-bls-1941806ec36f
+        // https://eprint.iacr.org/2017/552.pdf
+        // 使用同态加密，P1 生成 Enc(key1) 给 P2 来进行签名
+        lindell22();
+
+
 
 
 
@@ -65,29 +85,7 @@ public class MPCtest {
 
     }
 
-    // ==========================   Enc   =============================
-    public static boolean isPrime (int x) {
-        if (x == 1) return false;
-        for (int i = 2; i * i <= x; ++i) {
-            if (x%i == 0) return false;
-        }
-        return true;
-    } 
 
-    public static int getPrime (int length) {
-        int res = 0;
-        Random rd = new Random();
-        do {
-            res = 1;
-            for (int i = 0; i < length -2; ++i) {
-                res *= 2;
-                res += rd.nextInt(100);
-            }
-            res *= 2;
-            res += 1;
-        } while (!isPrime(res));
-        return res;
-    }
 
 
 
@@ -260,6 +258,113 @@ public class MPCtest {
 
         // 6. 验证签名 
         acore.verify(message, r, s, point3);
+    }
+
+    private static void lindellSingle() {
+        ECDSAcore acore = new ECDSAcore();
+        String message = "359d88771ebbbdefd2356a805af66b4243ab5ca30bb34fe154a0bd49fc4b9b40";
+
+        // 1. 给A和B指定key1，key2 和 随机数k1, k2
+        BigInteger key1 = new BigInteger("333", 16);
+        BigInteger key2 = new BigInteger("555", 16);
+        BigInteger k1 = new BigInteger("3", 16); 
+        BigInteger k2 = new BigInteger("5", 16); 
+        
+        // 2. 计算联合的 P 和 R
+        Point P1 = acore.fastMultiply(key1);
+        Point P2 = acore.fastMultiply(key2);
+        Point P = acore.fastMultiply(key1.multiply(key2));
+        // Point P_ = acore.fastMultiplyWithPoint(key2, P1);
+        // Point P__ = acore.fastMultiplyWithPoint(key1, P2);
+        // System.out.println(P);
+        // System.out.println(P_);
+        // System.out.println(P__);
+
+        Point R1 = acore.fastMultiply(k1);
+        Point R2 = acore.fastMultiply(k2);
+        Point R = acore.fastMultiply(k1.multiply(k2));
+        // Point R_ = acore.fastMultiplyWithPoint(k1, R2);
+        // Point R__ = acore.fastMultiplyWithPoint(k2, R1);
+        // System.out.println(R);
+        // System.out.println(R_);
+        // System.out.println(R__);
+
+        String r = R.getX().toString(16);
+
+        // 3. 计算签名 s=(z+r⋅pk1⋅pk2)/k1/k2
+        BigInteger h = new BigInteger(message,16);
+        BigInteger r_ = new BigInteger(r,16);
+        String s = (h.add(r_.multiply(key1).multiply(key2))).divide(k1.multiply(k2)).toString(16);
+
+      // 6. 验证签名 
+      acore.verify(message, r, s, P);
+
+    }
+
+    private static void lindell22() throws HomomorphicException{
+        BigInteger p = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",16);
+        BigInteger n = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",16);
+
+        ECDSAcore acore = new ECDSAcore();
+        String message = "359d88771ebbbdefd2356a805af66b4243ab5ca30bb34fe154a0bd49fc4b9b40";
+
+        // 1. 给A和B指定key1，key2 和 随机数k1, k2
+        BigInteger key1 = new BigInteger("333", 16);
+        BigInteger key2 = new BigInteger("555", 16);
+        BigInteger k1 = new BigInteger("3", 16); 
+        BigInteger k2 = new BigInteger("5", 16); 
+        
+        // 2. A和B各自计算的 P1，P2 和 R1，R2
+        Point P1 = acore.fastMultiply(key1);
+        Point P2 = acore.fastMultiply(key2);
+        Point P = acore.fastMultiplyWithPoint(key2, P1);
+
+        Point R1 = acore.fastMultiply(k1);
+        Point R2 = acore.fastMultiply(k2);
+        Point R = acore.fastMultiplyWithPoint(k2, R1);
+        String r = R.getX().toString(16);
+
+
+        // 3. P1 将其私钥 key1 进行同态加密，得到 c1，将 c1 给 P2
+		PaillierKeyPairGenerator pa = new PaillierKeyPairGenerator();
+		KeyPair paillier = pa.generateKeyPair();		
+		PaillierPublicKey pk = (PaillierPublicKey) paillier.getPublic();
+		PaillierPrivateKey sk = (PaillierPrivateKey) paillier.getPrivate();
+        // System.out.println("print paillier keys");
+        // System.out.println(pk);
+        // System.out.println(sk);
+
+        BigInteger ckey = PaillierCipher.encrypt(key1, pk);
+        // System.out.println("ckey"+ckey);
+		// BigInteger key1_ = PaillierCipher.decrypt(ckey, sk);
+        // System.out.println("key1_" + key1_);
+
+
+        // 4. P2 使用 ckey 计算 s'=(z+r⋅ckey⋅key2)/k2
+        BigInteger h = new BigInteger(message,16);
+
+        //c1 =encrypt(ro*n + k2^(-1)*m), ro是P2生成的一个随机数，用于混淆
+        BigInteger ro = new BigInteger("7",16);
+        BigInteger c1 = PaillierCipher.encrypt((ro.multiply(n)).add(k2.modInverse(n).multiply(h)), pk);
+
+        // v = k2^(-1)*r*key2
+        BigInteger v = k2.modInverse(n).multiply(new BigInteger(r,16)).multiply(key2);
+
+        // c2 = 同态加（ckey，v)
+        BigInteger c2 = PaillierCipher.multiply(ckey, v, pk); 
+
+        // c3 = 同态乘 （c1, c2）
+        BigInteger c3 = PaillierCipher.add(c1, c2, pk);
+
+
+
+        // 5. P1 同态解密c3得到s_, s= k1^(−1)*s_
+        BigInteger s_ = PaillierCipher.decrypt(c3, sk);
+        String s = k1.modInverse(n).multiply(s_).toString(16);
+
+        // 6. 验证签名 
+        acore.verify(message, r, s, P);
+
     }
 
 
