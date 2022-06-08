@@ -350,10 +350,10 @@ public class MPCtest {
         // v = k2^(-1)*r*key2
         BigInteger v = k2.modInverse(n).multiply(new BigInteger(r,16)).multiply(key2);
 
-        // c2 = 同态加（ckey，v)
+        // c2 = 同态乘（ckey，v)
         BigInteger c2 = PaillierCipher.multiply(ckey, v, pk); 
 
-        // c3 = 同态乘 （c1, c2）
+        // c3 = 同态加 （c1, c2）
         BigInteger c3 = PaillierCipher.add(c1, c2, pk);
 
 
