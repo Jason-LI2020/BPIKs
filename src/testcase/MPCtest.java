@@ -93,6 +93,10 @@ public class MPCtest {
     // =================================================================
 
     private static void ecdsaClassical() {
+
+        BigInteger p = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",16);
+        BigInteger n = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",16);
+
         ECDSAcore acore = new ECDSAcore();
         String message = "359d88771ebbbdefd2356a805af66b4243ab5ca30bb34fe154a0bd49fc4b9b40";
         String p1 = "888";
@@ -111,7 +115,11 @@ public class MPCtest {
         Point point3 = acore.add(point1, point2);
 
         // 3. 计算 r = (k1*G + k2*G)的x坐标
-        String r = acore.add(acore.fastMultiply(k1), acore.fastMultiply(k2)).getX().toString(16);
+        String r = acore.add(acore.fastMultiply(k1), acore.fastMultiply(k2)).getX().mod(n).toString(16);
+        // String r_ = acore.add(acore.fastMultiply(k1), acore.fastMultiply(k2)).getX().toString(16);
+        // System.out.println(r);
+        // System.out.println(r_);
+
 
         // // 4. 双方分别计算s
         // BigInteger s1 = (BigInteger(message, 16) + BigInteger(key1,16)*BigInteger(r,16))/k1;
@@ -123,8 +131,11 @@ public class MPCtest {
         // BigInteger keys = new BigInteger(key1,16).add(new BigInteger(key2,16));
         BigInteger keys = new BigInteger(p1,16);
         
-        String s = (h.add(keys.multiply(new BigInteger(r,16)))).divide(k1.add(k2)).toString(16);
-
+        String s = (h.add(keys.multiply(new BigInteger(r,16)))).divide(k1.add(k2)).mod(n).toString(16);
+        // String s_ = (h.add(keys.multiply(new BigInteger(r,16)))).divide(k1.add(k2)).toString(16);
+        // System.out.println(s);
+        // System.out.println(s_);
+        
         // 5. 验证签名 
         acore.verify(message, r, s, point3);
     }
@@ -261,6 +272,8 @@ public class MPCtest {
     }
 
     private static void lindellSingle() {
+        BigInteger n = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",16);
+
         ECDSAcore acore = new ECDSAcore();
         String message = "359d88771ebbbdefd2356a805af66b4243ab5ca30bb34fe154a0bd49fc4b9b40";
 
@@ -289,12 +302,12 @@ public class MPCtest {
         // System.out.println(R_);
         // System.out.println(R__);
 
-        String r = R.getX().toString(16);
+        String r = R.getX().mod(n).toString(16);
 
         // 3. 计算签名 s=(z+r⋅pk1⋅pk2)/k1/k2
         BigInteger h = new BigInteger(message,16);
         BigInteger r_ = new BigInteger(r,16);
-        String s = (h.add(r_.multiply(key1).multiply(key2))).divide(k1.multiply(k2)).toString(16);
+        String s = (h.add(r_.multiply(key1).multiply(key2))).divide(k1.multiply(k2)).mod(n).toString(16);
 
       // 6. 验证签名 
       acore.verify(message, r, s, P);
@@ -322,7 +335,7 @@ public class MPCtest {
         Point R1 = acore.fastMultiply(k1);
         Point R2 = acore.fastMultiply(k2);
         Point R = acore.fastMultiplyWithPoint(k2, R1);
-        String r = R.getX().toString(16);
+        String r = R.getX().mod(n).toString(16);
 
 
         // 3. P1 将其私钥 key1 进行同态加密，得到 c1，将 c1 给 P2
@@ -345,10 +358,10 @@ public class MPCtest {
 
         //c1 =encrypt(ro*n + k2^(-1)*m), ro是P2生成的一个随机数，用于混淆
         BigInteger ro = new BigInteger("7",16);
-        BigInteger c1 = PaillierCipher.encrypt((ro.multiply(n)).add(k2.modInverse(n).multiply(h)), pk);
+        BigInteger c1 = PaillierCipher.encrypt((ro.multiply(n)).add(k2.modInverse(n).multiply(h).mod(n)), pk);
 
         // v = k2^(-1)*r*key2
-        BigInteger v = k2.modInverse(n).multiply(new BigInteger(r,16)).multiply(key2);
+        BigInteger v = k2.modInverse(n).multiply(new BigInteger(r,16)).multiply(key2).mod(n);
 
         // c2 = 同态乘（ckey，v)
         BigInteger c2 = PaillierCipher.multiply(ckey, v, pk); 
@@ -360,7 +373,9 @@ public class MPCtest {
 
         // 5. P1 同态解密c3得到s_, s= k1^(−1)*s_
         BigInteger s_ = PaillierCipher.decrypt(c3, sk);
-        String s = k1.modInverse(n).multiply(s_).toString(16);
+        String s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
+        System.out.println("r:"+r);
+        System.out.println("s:"+s);
 
         // 6. 验证签名 
         acore.verify(message, r, s, P);
