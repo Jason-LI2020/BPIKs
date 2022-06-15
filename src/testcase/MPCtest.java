@@ -2,6 +2,8 @@ package testcase;
 
 
 import com.vhklabs.ecdsa.ECDSAcore;
+import com.vhklabs.ecdsa.ED25519core;
+import com.vhklabs.ecdsa.Curve25519core;
 import com.vhklabs.ecdsa.Point;
 import com.vhklabs.ecdsa.utils.Base58;
 import com.vhklabs.ecdsa.utils.HEX;
@@ -74,12 +76,23 @@ public class MPCtest {
         // https://eprint.iacr.org/2017/552.pdf
         // 使用同态加密，P1 生成 Enc(key1) 给 P2 来进行签名
         lindell22();
-
+  
+        System.out.println("==========================  Curve25519 : 2/2 sign  ===============================");
+        // https://en.wikipedia.org/wiki/Curve25519
+        // https://en.wikipedia.org/wiki/Montgomery_curve
+        // https://medium.com/asecuritysite-when-bob-met-alice/threshold-ed25519-its-just-magical-and-fit-for-a-more-resilient-and-trusted-world-5431e124942
+        // https://crypto.stackexchange.com/questions/50448/schnorr-signatures-multisignature-support#
+        // https://bitcointechtalk.com/scaling-bitcoin-schnorr-signatures-abe3b5c275d1
+        // 基于蒙哥马利曲线结合mulsig schnorr算法的签名算法实现
+        // y^2 = x^3 + 486662 * x^2 + x
+        curve25519Sign22();
 
 
 
 
      
+
+
 
 
 
@@ -217,6 +230,9 @@ public class MPCtest {
         String L = HashUtil.getSHA(P1.getX().add(P2.getX()).toString(16), "SHA-256");
 
         // 4. 计算聚合公钥 P=hash(L,P1)×P1+…+hash(L,Pn)×Pn
+        BigInteger hash = new BigInteger(HashUtil.getSHA(new BigInteger(L,16).add(P1.getX()).toString(16), "SHA-256"), 16);
+        System.out.println("hash:"+hash);
+
         Point _P1 = acore.fastMultiplyWithPoint(new BigInteger(HashUtil.getSHA(new BigInteger(L,16).add(P1.getX()).toString(16), "SHA-256"), 16), P1);
         Point _P2 = acore.fastMultiplyWithPoint(new BigInteger(HashUtil.getSHA(new BigInteger(L,16).add(P2.getX()).toString(16), "SHA-256"), 16), P2);
         Point P = acore.add(_P1, _P2);
@@ -379,6 +395,87 @@ public class MPCtest {
 
         // 6. 验证签名 
         acore.verify(message, r, s, P);
+
+    }
+
+    private static String padString(String x) {
+        int length = x.length();
+        int pad = 256 - length;
+        if (pad > 0) {
+            for (int i = 0; i < pad; i ++) {
+                x = "0" + x;
+            }
+        }
+        return x;
+    }
+
+
+    private static void curve25519Sign22() {
+        BigInteger n = new BigInteger("7237005577332262213973186563042994240857116359379907606001950938285454250989");
+
+        Curve25519core acore = new Curve25519core();
+
+        String message = "359d88771ebbbdefd2356a805af66b4243ab5ca30bb34fe154a0bd49fc4b9b40";
+
+        // 1. Alice 和 Bob 分别通过种子生成密钥对
+        BigInteger seed1 = new BigInteger("26666");
+        String[] keys1 = acore.generateKeyPair(seed1);
+        // System.out.println("keyPair:"+keys1[0]);
+        // System.out.println("keyPair:"+keys1[1]);
+        // System.out.println("keyPair:"+keys1[2]);
+
+        BigInteger seed2 = new BigInteger("29999");
+        String[] keys2 = acore.generateKeyPair(seed2);
+        // System.out.println("keyPair:"+keys2[0]);
+        // System.out.println("keyPair:"+keys2[1]);
+        // System.out.println("keyPair:"+keys2[2]);
+
+        // 2. 计算与所有公钥地址关联的hash L = hash(P1,..Pn)
+        String L = HashUtil.getSHA(keys1[1] + keys2[1], "SHA-512");
+        // System.out.println("L:"+L);
+
+
+        // 3. 计算聚合公钥 P=hash(L,P1)×P1+…+hash(L,Pn)×Pn
+        Point P1 = acore.fastMultiply(new BigInteger(keys1[0], 16));
+        Point P2 = acore.fastMultiply(new BigInteger(keys2[0], 16));
+
+        // System.out.println("P1:"+P1);
+        // System.out.println("P2:"+P2);
+
+        // 计算各自的哈希 seperateHash1, seperateHash2
+        BigInteger seperateHash1 = new BigInteger(HashUtil.getSHA(L + P1.getX().toString(16), "SHA-512"),16).mod(n);
+        BigInteger seperateHash2 = new BigInteger(HashUtil.getSHA(L + P2.getX().toString(16), "SHA-512"),16).mod(n);
+        
+        // System.out.println("seperateHash1:"+seperateHash1);
+        // System.out.println("seperateHash2:"+seperateHash2);
+
+        Point P1_ = acore.fastMultiplyWithPoint(seperateHash1, P1);
+        Point P2_ = acore.fastMultiplyWithPoint(seperateHash2, P2);
+
+        Point P = acore.add(P1_, P2_);        
+
+        // 4. 生成随机数 r1, r2, ri = hash(privateKeyi, message)
+        BigInteger r1 = new BigInteger(HashUtil.getSHA(keys1[2] + message, "SHA-512"),16).mod(n);
+        BigInteger r2 = new BigInteger(HashUtil.getSHA(keys2[2] + message, "SHA-512"),16).mod(n);
+
+        Point R1 = acore.fastMultiply(r1);
+        Point R2 = acore.fastMultiply(r2);
+        Point R = acore.add(R1, R2);
+
+        // 5. 计算公共哈希 z = H(P, R, m)
+        BigInteger z = new BigInteger(HashUtil.getSHA(P.getX().toString(16) + R.getX().toString(16) + message, "SHA-512"),16);
+
+        // 6. 各自计算签名 si = ri + hash(P,R,m) ⋅ hash(L,Pi) ⋅ pki, 联合签名 s = s1 + s2
+        BigInteger s1 = r1.add(z.multiply(seperateHash1).multiply(new BigInteger(keys1[0],16))).mod(n);
+        BigInteger s2 = r2.add(z.multiply(seperateHash2).multiply(new BigInteger(keys2[0],16))).mod(n);
+
+        BigInteger s = s1.add(s2);
+
+        // 7. 验签 s*G = R + H(P, R, m) * P
+        Point _sG = acore.fastMultiply(s);
+        Point sG_ = acore.add(R, acore.fastMultiplyWithPoint(z, P));
+        System.out.println(_sG);
+        System.out.println(sG_);
 
     }
 
