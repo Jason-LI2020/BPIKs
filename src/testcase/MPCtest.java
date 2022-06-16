@@ -92,7 +92,7 @@ public class MPCtest {
         // https://en.wikipedia.org/wiki/Twisted_Edwards_curve
         // http://ed25519.cr.yp.to/eddsa-20150704.pdf
         // https://master--eager-lamarr-59a89f.netlify.app/2018/12/28/cryptography/ed25519/
-        // 基于扭曲爱德华曲线接合mulsig schorr算法的签名算法实现
+        // 基于扭曲爱德华曲线接合mulsig schnorr算法的签名算法实现
         // −x² + y² = 1 − (121665/121666) * x² * y²
         ed25519Sign22();
 
