@@ -207,7 +207,7 @@ public class ECDSAcore {
     }
 
     public boolean isInverse(Point pointG,Point pointT){
-        return (p.compareTo(pointT.getY().add(pointG.getY())) == 0 && pointG.getX().compareTo(pointT.getX()) == 0);
+        return (p.compareTo(pointT.getY().add(pointG.getY())) == 0 && pointG.getY().compareTo(pointT.getY()) == 0);
     }
 
     /**

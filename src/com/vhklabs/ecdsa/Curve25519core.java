@@ -18,6 +18,7 @@ public class Curve25519core {
     static BigInteger TWO = new BigInteger("2");
     static BigInteger THREE = new BigInteger("3");
 
+    // hash function should have 2b-bits output
     private int b = 256;
 
     // B*y^2 = x^3 + A*x^2 +x
@@ -30,7 +31,6 @@ public class Curve25519core {
     // subgroup order, how many points ed25519 has, n = 2**252 + 27742317777372353535851937790883648493
     private BigInteger n = new BigInteger("7237005577332262213973186563042994240857116359379907606001950938285454250989");
     // cofactor
-
     private BigInteger h = new BigInteger("8");
 
     //The Base Poing G 
@@ -281,7 +281,7 @@ public class Curve25519core {
      * @param point
      * @return
      */
-    public boolean inPointOnCurve(Point point){
+    public boolean isPointOnCurve(Point point){
         return B.multiply(point.getY()).multiply(point.getY()).mod(p).equals(
             (point.getX().multiply(point.getX()).multiply(point.getX()))
                 .add((A.multiply(point.getX()).multiply(point.getX())))
