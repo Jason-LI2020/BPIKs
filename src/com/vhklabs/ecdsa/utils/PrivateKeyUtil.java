@@ -30,6 +30,26 @@ public class PrivateKeyUtil {
         }
         return "0x"+stringBuilder.toString();
     }
+
+       /**
+     * 获取以太坊地址 EIP55
+     * see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
+     * @param priv
+     * @return
+     */
+    public static String getEthereumAddressWithPublicKey(Point publicKey){
+        String nostan = HashUtil.keccak256(publicKey.getX().toString(16) + publicKey.getY().toString(16)).substring(24, 64);
+        StringBuilder stringBuilder = new StringBuilder();
+        String hex = HashUtil.keccak256String(nostan);
+        for (int i=0;i<nostan.length();i++){
+            if(Integer.parseInt(hex.substring(i,i+1),16) >= 8){
+                stringBuilder.append(nostan.substring(i,i+1).toUpperCase());
+            }else{
+                stringBuilder.append(nostan.substring(i,i+1));
+            }
+        }
+        return "0x"+stringBuilder.toString();
+    }
     /**
      * 获取btc主网地址
      * @param priv
@@ -42,6 +62,19 @@ public class PrivateKeyUtil {
         String str2 = HashUtil.getSHA(HashUtil.getSHA(str, "SHA-256"), "SHA-256").substring(0, 8);
         return Base58.encode(HEX.encode(str+str2));
     }
+
+        /**
+     * 获取btc主网地址
+     * @param priv
+     * @return
+     */
+    public static String getBtcMainNetAddressWithPublickey(Point publicKey){
+        String str = "00" + HashUtil.getRipeMD160(HEX.encode(HashUtil.getSHA(getCompressedPublicKey(publicKey), "SHA-256")));
+        String str2 = HashUtil.getSHA(HashUtil.getSHA(str, "SHA-256"), "SHA-256").substring(0, 8);
+        return Base58.encode(HEX.encode(str+str2));
+    }
+
+
 
     /**
      * 获取btc测试网地址
