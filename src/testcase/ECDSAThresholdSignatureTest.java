@@ -29,6 +29,8 @@ public class ECDSAThresholdSignatureTest {
 
         ecdsaThresholdSignature33();
 
+        System.out.println("==========================  ECDSA Threshold Signature (2,3)  ====================================");
+
         ecdsaThresholdSignature23();
 
 
@@ -83,7 +85,7 @@ public class ECDSAThresholdSignatureTest {
         BigInteger f33 = u3.add(a32.multiply(THREE).add(a33.multiply(THREE.multiply(THREE))));  // P3保留
 
         // 1.6 各自计算私钥分片 xi = f1i + f2i + f3i，则x1，x2，x3是 私钥 x 的 Sharmir 分片
-        BigInteger x1 = f11.add(f21).add(f31);
+        BigInteger x1 = f11.add(f21).add(f31);      // (1,x1),(2,x2),(3,x3)
         BigInteger x2 = f12.add(f22).add(f32);
         BigInteger x3 = f13.add(f23).add(f33);
         System.out.println(x1);
@@ -184,7 +186,7 @@ public class ECDSAThresholdSignatureTest {
 
         BigInteger delta = delta_share1.add(delta_share2).add(delta_share3).mod(n);
 
-        // 2.4 计算随机数k对应的 R = k^(-1) * g
+        // 2.4 计算随机数k对应的 R = k^(-1) * g = gamma * g / (k * gamma) = gamma * g / delta
         // 2.4.1 计算 gammai * g
         Point Gamma1 = acore.fastMultiply(gamma1);  // P1 公开 Gamma1
         Point Gamma2 = acore.fastMultiply(gamma2);  // P1 公开 Gamma2
@@ -238,6 +240,7 @@ public class ECDSAThresholdSignatureTest {
         BigInteger sigma_share2 = k2.multiply(w2).add(u21).add(v12).add(u23).add(v32).mod(n);      // P2 公开 sigma_share2
         BigInteger sigma_share3 = k3.multiply(w3).add(u31).add(v13).add(u32).add(v23).mod(n);      // P3 公开 sigma_share3
 
+        // s = k * (m + x * r)
         // 2.6 各方各自计算签名 si = m * ki + r * sigma_sharei, 聚合签名 s = s1 + s2 + s3
         BigInteger m = new BigInteger(message,16);
 
@@ -471,3 +474,7 @@ public class ECDSAThresholdSignatureTest {
     }
 
 }
+
+
+
+
