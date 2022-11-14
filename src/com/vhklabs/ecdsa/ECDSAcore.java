@@ -238,6 +238,21 @@ public class ECDSAcore {
         return v;
     };
 
+    // 恢复紧凑编码 64 bits 签名对应的公钥
+    public Point recoverPubkeyCompactEncoded(String message, BigInteger r, BigInteger vs, int chainId) {
+        String firstHex = vs.toString(16).substring(0, 1);
+
+        int recoverId = Integer.parseInt(firstHex,16) >> 3;
+        int v = chainId == 1 ? recoverId + 27 : chainId * 2 + 35 + recoverId;
+
+        String s1 = String.valueOf(Integer.parseInt(firstHex,16) % 8 );
+        String s2 = vs.toString(16).substring(1);
+
+        BigInteger s = new BigInteger(s1 + s2,16);
+
+        return recoverPubkey(message, r, s, v, chainId);
+    }
+
     public Point recoverPubkey(String message, BigInteger r, BigInteger s, int v, int chainId) {
         Point R = recoverR(r, v, chainId);
         // u1 = - m * r^(-1) mod n; 

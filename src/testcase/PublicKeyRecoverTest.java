@@ -35,6 +35,8 @@ public class PublicKeyRecoverTest {
 
         publicKeyRecovery();
 
+        publicKeyRecoveryWithCompactEncodedSignature();
+
     }
 
 
@@ -85,7 +87,20 @@ public class PublicKeyRecoverTest {
     }
 
     
+    public static void publicKeyRecoveryWithCompactEncodedSignature() {
+        // Account #2: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC (10000 ETH) 
 
+        String message = "e2f329afc4577473bc5e9e536f0a55bb9df7ce0fc987c40e2a41e616ac297187";
+        BigInteger r = new BigInteger("f33a425c21efd2b4b56644875e2429776120a2722f216ae8d34417d11945d33d", 16);
+        BigInteger vs = new BigInteger("8b489189de8c735a4784eb8746c9115f51b1a091b53442dcd26bda1ac5a45f03",16);
+
+        Point P = acore.recoverPubkeyCompactEncoded(message, r, vs, 1);
+        String RecoveredAccount = util.getEthereumAddressWithPublicKey(P);
+        System.out.println("Recovered Account with compact encoded signature: " + RecoveredAccount);
+
+
+
+    }
     
 
 
