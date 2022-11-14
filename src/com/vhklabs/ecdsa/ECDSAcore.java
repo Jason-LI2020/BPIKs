@@ -230,4 +230,40 @@ public class ECDSAcore {
         return point;
     }
 
+
+
+    public int calculateV(Point R, int chainId) {
+        int recoverId = R.getY().mod(BigInteger.TWO).intValue();
+        int v = chainId == 1 ? recoverId + 27 : chainId * 2 + 35 + recoverId;
+        return v;
+    };
+
+    public Point recoverPubkey(String message, BigInteger r, BigInteger s, int v, int chainId) {
+        Point R = recoverR(r, v, chainId);
+        // u1 = - m * r^(-1) mod n; 
+        BigInteger u1 = BigInteger.ZERO.subtract(new BigInteger(message,16).multiply(r.modInverse(n))).mod(n);
+        // u2 = s * r^(-1) mod n;
+        BigInteger u2 = s.multiply(r.modInverse(n)).mod(n);
+        // Q = u1 * G + u2 * R
+        Point Q = add(fastMultiply(u1), fastMultiplyWithPoint(u2, R));
+
+        return Q;
+
+    }
+
+    public Point recoverR(BigInteger r, int v, int chainId) {
+        BigInteger pOverFour = p.add(BigInteger.ONE).shiftRight(2);
+        BigInteger alpha = r.pow(3).add(new BigInteger("7"));
+        BigInteger beta = alpha.modPow(pOverFour, p);
+        BigInteger y = beta;
+        int recoverId = chainId == 1 ? v - 27 : v - 2 * chainId - 35;
+  
+        // isOdd 代表的是真实的 Rx 的奇偶性，如果与 beta 的奇偶性不同，则需要翻转
+        boolean isOdd = (recoverId % 2) > 0;
+        if ((y.intValue()%2 == 0) ^ (!isOdd) ) {
+            y = p.subtract(y);
+        }
+        return new Point (r, y);
+    };
+
 }

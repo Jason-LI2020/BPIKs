@@ -38,7 +38,8 @@ public class PublicKeyRecoverTest {
         // https://crypto.stackexchange.com/questions/60218/recovery-public-key-from-secp256k1-signature-and-message
         // https://learnblockchain.cn/index.php/article/1038
         // https://github.com/Tschaul/recover-pub-key/blob/fda94f0f04adfea982babeb5973be59aadf1327b/node_modules/ecdsa/lib/ecdsa.js
-        
+        // https://www.cnblogs.com/HachikoT/p/15991277.html#恢复recover
+
         publicKeyRecovery();
 
     }
@@ -60,12 +61,12 @@ public class PublicKeyRecoverTest {
 
 
         // 1. 生成以太坊签名 r,s,v
-        BigInteger random_k = new BigInteger("171963177ac61196094e2506a1f11d5329f992c18a5d62174560a03a78767313",16);
+        BigInteger random_k = new BigInteger("171963177ac61196094e2506a1a11d5329f992c18a5d62174560a03a78767313",16);
         Point R0 = acore.fastMultiply(random_k);
         BigInteger r0 = R0.getX();
         BigInteger r = r0.mod(n);
         BigInteger s = random_k.modInverse(n).multiply(new BigInteger(message,16).add(r.multiply(new BigInteger(privateKey,16)))).mod(n);
-        int v = calculateV(R0);
+        int v = acore.calculateV(R0, chainId);
 
         acore.verify(message, r.toString(16), s.toString(16), PublicKey);
 
@@ -75,7 +76,7 @@ public class PublicKeyRecoverTest {
         System.out.println("v: " + v);
 
         // 2. 根据 message, r, s, v 恢复public key
-        Point Q = recoverPubkey(message, r, s, v);
+        Point Q = acore.recoverPubkey(message, r, s, v, chainId);
         String RecoveredAccount = util.getEthereumAddressWithPublicKey(Q);
 
         System.out.println("根据 message, r, s, v 恢复账户地址: ");
@@ -83,8 +84,8 @@ public class PublicKeyRecoverTest {
         System.out.println("Recovered Account: " + RecoveredAccount);
 
         // 3. 在只有 message, r, s 的情况下，恢复出两个可能的公钥
-        Point Q1 = recoverPubkey(message, r, s, 27);
-        Point Q2 = recoverPubkey(message, r, s, 28);
+        Point Q1 = acore.recoverPubkey(message, r, s, 27, chainId);
+        Point Q2 = acore.recoverPubkey(message, r, s, 28, chainId);
         String PotentialAccount1 = util.getEthereumAddressWithPublicKey(Q1);
         String PotentialAccount2 = util.getEthereumAddressWithPublicKey(Q2);
 
@@ -97,39 +98,39 @@ public class PublicKeyRecoverTest {
 
     
 
-    public static int calculateV(Point R) {
-        int recoverId = R.getY().mod(BigInteger.TWO).intValue();
-        int v = chainId == 1 ? recoverId + 27 : chainId * 2 + 35 + recoverId;
-        return v;
-    };
+    // public static int calculateV(Point R) {
+    //     int recoverId = R.getY().mod(BigInteger.TWO).intValue();
+    //     int v = chainId == 1 ? recoverId + 27 : chainId * 2 + 35 + recoverId;
+    //     return v;
+    // };
 
-    private static Point recoverPubkey(String message, BigInteger r, BigInteger s, int v) {
-        Point R = recoverR(r, v);
-        // u1 = - m * r^(-1) mod n; 
-        BigInteger u1 = BigInteger.ZERO.subtract(new BigInteger(message,16).multiply(r.modInverse(n))).mod(n);
-        // u2 = s * r^(-1) mod n;
-        BigInteger u2 = s.multiply(r.modInverse(n)).mod(n);
-        // Q = u1 * G + u2 * R
-        Point Q = acore.add(acore.fastMultiply(u1), acore.fastMultiplyWithPoint(u2, R));
+    // private static Point recoverPubkey(String message, BigInteger r, BigInteger s, int v) {
+    //     Point R = recoverR(r, v);
+    //     // u1 = - m * r^(-1) mod n; 
+    //     BigInteger u1 = BigInteger.ZERO.subtract(new BigInteger(message,16).multiply(r.modInverse(n))).mod(n);
+    //     // u2 = s * r^(-1) mod n;
+    //     BigInteger u2 = s.multiply(r.modInverse(n)).mod(n);
+    //     // Q = u1 * G + u2 * R
+    //     Point Q = acore.add(acore.fastMultiply(u1), acore.fastMultiplyWithPoint(u2, R));
 
-        return Q;
+    //     return Q;
 
-    }
+    // }
 
-    public static Point recoverR(BigInteger r, int v) {
-        BigInteger pOverFour = p.add(BigInteger.ONE).shiftRight(2);
-        BigInteger alpha = r.pow(3).add(new BigInteger("7"));
-        BigInteger beta = alpha.modPow(pOverFour, p);
-        BigInteger y = beta;
-        int recoverId = chainId == 1 ? v - 27 : v - 2*chainId - 35;
+    // public static Point recoverR(BigInteger r, int v) {
+    //     BigInteger pOverFour = p.add(BigInteger.ONE).shiftRight(2);
+    //     BigInteger alpha = r.pow(3).add(new BigInteger("7"));
+    //     BigInteger beta = alpha.modPow(pOverFour, p);
+    //     BigInteger y = beta;
+    //     int recoverId = chainId == 1 ? v - 27 : v - 2*chainId - 35;
   
-        // isOdd 代表的是真实的 Rx 的奇偶性，如果与 beta 的奇偶性不同，则需要翻转
-        boolean isOdd = (recoverId % 2) > 0;
-        if ((y.intValue()%2 == 0) ^ (!isOdd) ) {
-            y = p.subtract(y);
-        }
-        return new Point (r, y);
-    };
+    //     // isOdd 代表的是真实的 Rx 的奇偶性，如果与 beta 的奇偶性不同，则需要翻转
+    //     boolean isOdd = (recoverId % 2) > 0;
+    //     if ((y.intValue()%2 == 0) ^ (!isOdd) ) {
+    //         y = p.subtract(y);
+    //     }
+    //     return new Point (r, y);
+    // };
     
 
     
