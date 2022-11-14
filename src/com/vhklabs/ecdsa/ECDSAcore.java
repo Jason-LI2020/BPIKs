@@ -253,7 +253,7 @@ public class ECDSAcore {
 
     public Point recoverR(BigInteger r, int v, int chainId) {
         BigInteger pOverFour = p.add(BigInteger.ONE).shiftRight(2);
-        BigInteger alpha = r.pow(3).add(new BigInteger("7"));
+        BigInteger alpha = r.pow(3).add(a.multiply(r)).add(b).mod(p);
         BigInteger beta = alpha.modPow(pOverFour, p);
         BigInteger y = beta;
         int recoverId = chainId == 1 ? v - 27 : v - 2 * chainId - 35;

@@ -10,13 +10,6 @@ import com.vhklabs.ecdsa.utils.HEX;
 import com.vhklabs.ecdsa.utils.HashUtil;
 import com.vhklabs.ecdsa.utils.PrivateKeyUtil;
 
-import security.misc.HomomorphicException;
-
-import security.paillier.PaillierCipher;
-import security.paillier.PaillierKeyPairGenerator;
-import security.paillier.PaillierPrivateKey;
-import security.paillier.PaillierPublicKey;
-
 import java.math.BigInteger;
 import java.security.KeyPair;
 
@@ -31,7 +24,7 @@ public class PublicKeyRecoverTest {
 
 
 
-    public static void main(String[] args) throws HomomorphicException{
+    public static void main(String[] args) {
     
         System.out.println("==========================  ECDSA: Public Key Recover  ====================================");
         // https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm
@@ -43,10 +36,6 @@ public class PublicKeyRecoverTest {
         publicKeyRecovery();
 
     }
-
-
-
-
 
 
     // =================================================================
@@ -61,7 +50,7 @@ public class PublicKeyRecoverTest {
 
 
         // 1. 生成以太坊签名 r,s,v
-        BigInteger random_k = new BigInteger("171963177ac61196094e2506a1a11d5329f992c18a5d62174560a03a78767313",16);
+        BigInteger random_k = new BigInteger("171963177ac61f96094e2506a1a11d5329f992a18a1d62174560a03a78767313",16);
         Point R0 = acore.fastMultiply(random_k);
         BigInteger r0 = R0.getX();
         BigInteger r = r0.mod(n);
@@ -95,42 +84,6 @@ public class PublicKeyRecoverTest {
 
     }
 
-
-    
-
-    // public static int calculateV(Point R) {
-    //     int recoverId = R.getY().mod(BigInteger.TWO).intValue();
-    //     int v = chainId == 1 ? recoverId + 27 : chainId * 2 + 35 + recoverId;
-    //     return v;
-    // };
-
-    // private static Point recoverPubkey(String message, BigInteger r, BigInteger s, int v) {
-    //     Point R = recoverR(r, v);
-    //     // u1 = - m * r^(-1) mod n; 
-    //     BigInteger u1 = BigInteger.ZERO.subtract(new BigInteger(message,16).multiply(r.modInverse(n))).mod(n);
-    //     // u2 = s * r^(-1) mod n;
-    //     BigInteger u2 = s.multiply(r.modInverse(n)).mod(n);
-    //     // Q = u1 * G + u2 * R
-    //     Point Q = acore.add(acore.fastMultiply(u1), acore.fastMultiplyWithPoint(u2, R));
-
-    //     return Q;
-
-    // }
-
-    // public static Point recoverR(BigInteger r, int v) {
-    //     BigInteger pOverFour = p.add(BigInteger.ONE).shiftRight(2);
-    //     BigInteger alpha = r.pow(3).add(new BigInteger("7"));
-    //     BigInteger beta = alpha.modPow(pOverFour, p);
-    //     BigInteger y = beta;
-    //     int recoverId = chainId == 1 ? v - 27 : v - 2*chainId - 35;
-  
-    //     // isOdd 代表的是真实的 Rx 的奇偶性，如果与 beta 的奇偶性不同，则需要翻转
-    //     boolean isOdd = (recoverId % 2) > 0;
-    //     if ((y.intValue()%2 == 0) ^ (!isOdd) ) {
-    //         y = p.subtract(y);
-    //     }
-    //     return new Point (r, y);
-    // };
     
 
     
