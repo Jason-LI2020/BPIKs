@@ -207,7 +207,7 @@ public class ECDSAcore {
     }
 
     public boolean isInverse(Point pointG,Point pointT){
-        return (p.compareTo(pointT.getY().add(pointG.getY())) == 0 && pointG.getY().compareTo(pointT.getY()) == 0);
+        return (p.compareTo(pointT.getY().add(pointG.getY())) == 0 && pointG.getX().compareTo(pointT.getX()) == 0);
     }
 
     /**
@@ -233,12 +233,12 @@ public class ECDSAcore {
 
 
     public int calculateV(Point R, int chainId) {
-        int recoverId = R.getY().mod(BigInteger.TWO).intValue();
+        int recoverId = R.getY().mod(new BigInteger("2")).intValue();
         int v = chainId == 1 ? recoverId + 27 : chainId * 2 + 35 + recoverId;
         return v;
     };
 
-    // 恢复紧凑编码 64 bits 签名对应的公钥
+    // 恢复紧凑编码 64 bytes 签名对应的公钥
     public Point recoverPubkeyCompactEncoded(String message, BigInteger r, BigInteger vs, int chainId) {
         String firstHex = vs.toString(16).substring(0, 1);
 

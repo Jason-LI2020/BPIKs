@@ -33,7 +33,7 @@ public class PublicKeyRecoverTest {
         // https://github.com/Tschaul/recover-pub-key/blob/fda94f0f04adfea982babeb5973be59aadf1327b/node_modules/ecdsa/lib/ecdsa.js
         // https://www.cnblogs.com/HachikoT/p/15991277.html#恢复recover
 
-        publicKeyRecovery();
+        // publicKeyRecovery();
 
         publicKeyRecoveryWithCompactEncodedSignature();
 
@@ -89,10 +89,20 @@ public class PublicKeyRecoverTest {
     
     public static void publicKeyRecoveryWithCompactEncodedSignature() {
         // Account #2: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC (10000 ETH) 
+        // 3bc7f517f4d9e9ecbee388020fb70bf48019d3d2f3694dc6d9b8d7e9aab789c9
+        // faa10fec7595d019229947303da2653ddf3c3a9c405999c62c4f386117377cb6
+        // 37d6713a7cbf4d75c1a0a6c7a0ada4d1552c46a29d16452083ac94b790361134
 
-        String message = "e2f329afc4577473bc5e9e536f0a55bb9df7ce0fc987c40e2a41e616ac297187";
-        BigInteger r = new BigInteger("f33a425c21efd2b4b56644875e2429776120a2722f216ae8d34417d11945d33d", 16);
-        BigInteger vs = new BigInteger("8b489189de8c735a4784eb8746c9115f51b1a091b53442dcd26bda1ac5a45f03",16);
+        // 597db9b3ad9fa08220abc5962ac568b00685b4474695d7ac721444e7d0c808f9
+        // 58198e8519bc8bd7332f6fd5e32f1c127b36bc55fedf6b1d26e85ff802348c9c
+
+        
+        // a946ce745f444649b490b2ef9398c382013851ee2c1356ffb0f8861b6b260d2b
+        // ae70d51db1d9df72b5931ad880d0cda940cc171d94b2fed337c61b8da6f7f713
+
+        String message = "e149932e5b2717cef1f837e83790bc58911c9d4ee7f02d66bfa0f8727f495305";
+        BigInteger r = new BigInteger("a946ce745f444649b490b2ef9398c382013851ee2c1356ffb0f8861b6b260d2b", 16);
+        BigInteger vs = new BigInteger("ae70d51db1d9df72b5931ad880d0cda940cc171d94b2fed337c61b8da6f7f713",16);
 
         Point P = acore.recoverPubkeyCompactEncoded(message, r, vs, 1);
         String RecoveredAccount = util.getEthereumAddressWithPublicKey(P);
