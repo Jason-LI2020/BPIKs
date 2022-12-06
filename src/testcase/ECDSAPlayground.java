@@ -42,6 +42,14 @@ public class ECDSAPlayground {
             System.out.println("=============== 5. 验证签名 =================");
             acore.verify(transaction,signatures[0],signatures[1],publickey);
 
+            // 7. 公钥恢复
+            System.out.println("=============== 6. 公钥恢复 =================");
+
+            Point Q1 = acore.recoverPubkey(transaction,new BigInteger(signatures[0],16),new BigInteger(signatures[1],16),27,1);
+            Point Q2 = acore.recoverPubkey(transaction,new BigInteger(signatures[0],16),new BigInteger(signatures[1],16),28,1);
+            System.out.println("恢复Q1:"+Q1);
+            System.out.println("恢复Q2:"+Q2);
+
 
 
     }

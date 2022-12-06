@@ -22,7 +22,7 @@ public class ECDSAcore {
     private BigInteger h= new BigInteger("01");
     //The Bitcoin G point
     private Point G = new Point(new BigInteger("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",16),new BigInteger("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",16));
-
+    
     /**
      * 签名
      * @author William Liu
@@ -36,7 +36,7 @@ public class ECDSAcore {
         do {
 
             BigInteger k = new BigInteger(HashUtil.getSHA(Math.random() + System.currentTimeMillis() + "THHAhshjaYYHJSA^HGHSA", "SHA-256"), 16);
-            r = fastMultiply(k).getX().mod(p);
+            r = fastMultiply(k).getX().mod(n);
             s = (new BigInteger(message, 16).add(new BigInteger(privateKey, 16).multiply(r))).multiply(k.modInverse(n)).mod(n);
 
             //standrad bitcoin signature SIG is <r><s> concatenated together.
@@ -239,26 +239,27 @@ public class ECDSAcore {
     };
 
     // 恢复紧凑编码 64 bytes 签名对应的公钥
-    public Point recoverPubkeyCompactEncoded(String message, BigInteger r, BigInteger vs, int chainId) {
-        String firstHex = vs.toString(16).substring(0, 1);
+    public Point recoverPubkeyCompactEncoded(String message, String r, String vs, int chainId) {
+        String firstHex = vs.substring(0, 1);
 
         int recoverId = Integer.parseInt(firstHex,16) >> 3;
         int v = chainId == 1 ? recoverId + 27 : chainId * 2 + 35 + recoverId;
 
         String s1 = String.valueOf(Integer.parseInt(firstHex,16) % 8 );
-        String s2 = vs.toString(16).substring(1);
+        String s2 = vs.substring(1);
 
-        BigInteger s = new BigInteger(s1 + s2,16);
+        String s = s1 + s2;
 
         return recoverPubkey(message, r, s, v, chainId);
     }
 
-    public Point recoverPubkey(String message, BigInteger r, BigInteger s, int v, int chainId) {
+    public Point recoverPubkey(String message, String r, String s, int v, int chainId) {
         Point R = recoverR(r, v, chainId);
+
         // u1 = - m * r^(-1) mod n; 
-        BigInteger u1 = BigInteger.ZERO.subtract(new BigInteger(message,16).multiply(r.modInverse(n))).mod(n);
+        BigInteger u1 = new BigInteger("0").subtract(new BigInteger(message,16).multiply(new BigInteger(r,16).modInverse(n))).mod(n);
         // u2 = s * r^(-1) mod n;
-        BigInteger u2 = s.multiply(r.modInverse(n)).mod(n);
+        BigInteger u2 = new BigInteger(s,16).multiply(new BigInteger(r,16).modInverse(n)).mod(n);
         // Q = u1 * G + u2 * R
         Point Q = add(fastMultiply(u1), fastMultiplyWithPoint(u2, R));
 
@@ -266,9 +267,10 @@ public class ECDSAcore {
 
     }
 
-    public Point recoverR(BigInteger r, int v, int chainId) {
+    public Point recoverR(String r, int v, int chainId) {
+        BigInteger x = new BigInteger(r,16);
         BigInteger pOverFour = p.add(BigInteger.ONE).shiftRight(2);
-        BigInteger alpha = r.pow(3).add(a.multiply(r)).add(b).mod(p);
+        BigInteger alpha = x.pow(3).add(a.multiply(x)).add(b).mod(p);
         BigInteger beta = alpha.modPow(pOverFour, p);
         BigInteger y = beta;
         int recoverId = chainId == 1 ? v - 27 : v - 2 * chainId - 35;
@@ -278,7 +280,7 @@ public class ECDSAcore {
         if ((y.intValue()%2 == 0) ^ (!isOdd) ) {
             y = p.subtract(y);
         }
-        return new Point (r, y);
+        return new Point (x, y);
     };
 
 }

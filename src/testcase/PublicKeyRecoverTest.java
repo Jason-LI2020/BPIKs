@@ -42,71 +42,88 @@ public class PublicKeyRecoverTest {
 
     // =================================================================
 
-    public static void publicKeyRecovery() {
-        String message = "df623c51d5cdf16f35695e55f1a4f20a31dcb45107fe5d368e612c02ce1af041";
-        String privateKey = "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
-        Point PublicKey = acore.fastMultiply(new BigInteger(privateKey,16));
-        String Account = util.getEthereumAddressWithPublicKey(PublicKey);
-        System.out.println("真实的账户地址: ");
-        System.out.println("Account: " + Account);
+    // public static void publicKeyRecovery() {
+    //     String message = "df623c51d5cdf16f35695e55f1a4f20a31dcb45107fe5d368e612c02ce1af041";
+    //     String privateKey = "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
+    //     Point PublicKey = acore.fastMultiply(new BigInteger(privateKey,16));
+    //     String Account = util.getEthereumAddressWithPublicKey(PublicKey);
+    //     System.out.println("真实的账户地址: ");
+    //     System.out.println("Account: " + Account);
 
 
-        // 1. 生成以太坊签名 r,s,v
-        BigInteger random_k = new BigInteger("171963177ac61f96094e2506a1a11d5329f992a18a1d62174560a03a78767313",16);
-        Point R0 = acore.fastMultiply(random_k);
-        BigInteger r0 = R0.getX();
-        BigInteger r = r0.mod(n);
-        BigInteger s = random_k.modInverse(n).multiply(new BigInteger(message,16).add(r.multiply(new BigInteger(privateKey,16)))).mod(n);
-        int v = acore.calculateV(R0, chainId);
+    //     // 1. 生成以太坊签名 r,s,v
+    //     BigInteger random_k = new BigInteger("171963177ac61f96094e2506a1a11d5329f992a18a1d62174560a03a78767313",16);
+    //     Point R0 = acore.fastMultiply(random_k);
+    //     BigInteger r0 = R0.getX();
+    //     BigInteger r = r0.mod(n);
+    //     BigInteger s = random_k.modInverse(n).multiply(new BigInteger(message,16).add(r.multiply(new BigInteger(privateKey,16)))).mod(n);
+    //     int v = acore.calculateV(R0, chainId);
 
-        acore.verify(message, r.toString(16), s.toString(16), PublicKey);
+    //     acore.verify(message, r.toString(16), s.toString(16), PublicKey);
 
-        System.out.println("R0: " + R0);
-        System.out.println("r: " + r.toString(16));
-        System.out.println("s: " + s.toString(16));
-        System.out.println("v: " + v);
+    //     System.out.println("R0: " + R0);
+    //     System.out.println("r: " + r.toString(16));
+    //     System.out.println("s: " + s.toString(16));
+    //     System.out.println("v: " + v);
 
-        // 2. 根据 message, r, s, v 恢复public key
-        Point Q = acore.recoverPubkey(message, r, s, v, chainId);
-        String RecoveredAccount = util.getEthereumAddressWithPublicKey(Q);
+    //     // 2. 根据 message, r, s, v 恢复public key
+    //     Point Q = acore.recoverPubkey(message, r, s, v, chainId);
+    //     String RecoveredAccount = util.getEthereumAddressWithPublicKey(Q);
 
-        System.out.println("根据 message, r, s, v 恢复账户地址: ");
-        System.out.println("Recovered Public Key Point: " + Q);
-        System.out.println("Recovered Account: " + RecoveredAccount);
+    //     System.out.println("根据 message, r, s, v 恢复账户地址: ");
+    //     System.out.println("Recovered Public Key Point: " + Q);
+    //     System.out.println("Recovered Account: " + RecoveredAccount);
 
-        // 3. 在只有 message, r, s 的情况下，恢复出两个可能的公钥
-        Point Q1 = acore.recoverPubkey(message, r, s, 27, chainId);
-        Point Q2 = acore.recoverPubkey(message, r, s, 28, chainId);
-        String PotentialAccount1 = util.getEthereumAddressWithPublicKey(Q1);
-        String PotentialAccount2 = util.getEthereumAddressWithPublicKey(Q2);
+    //     // 3. 在只有 message, r, s 的情况下，恢复出两个可能的公钥
+    //     Point Q1 = acore.recoverPubkey(message, r, s, 27, chainId);
+    //     Point Q2 = acore.recoverPubkey(message, r, s, 28, chainId);
+    //     String PotentialAccount1 = util.getEthereumAddressWithPublicKey(Q1);
+    //     String PotentialAccount2 = util.getEthereumAddressWithPublicKey(Q2);
 
-        System.out.println("根据 message, r, s  恢复两个可能的账户地址: ");
-        System.out.println("PotentialAccount1: " + PotentialAccount1);
-        System.out.println("PotentialAccount2: " + PotentialAccount2);
+    //     System.out.println("根据 message, r, s  恢复两个可能的账户地址: ");
+    //     System.out.println("PotentialAccount1: " + PotentialAccount1);
+    //     System.out.println("PotentialAccount2: " + PotentialAccount2);
 
-    }
+    // }
 
     
     public static void publicKeyRecoveryWithCompactEncodedSignature() {
-        // Account #2: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC (10000 ETH) 
-        // 3bc7f517f4d9e9ecbee388020fb70bf48019d3d2f3694dc6d9b8d7e9aab789c9
-        // faa10fec7595d019229947303da2653ddf3c3a9c405999c62c4f386117377cb6
-        // 37d6713a7cbf4d75c1a0a6c7a0ada4d1552c46a29d16452083ac94b790361134
 
-        // 597db9b3ad9fa08220abc5962ac568b00685b4474695d7ac721444e7d0c808f9
-        // 58198e8519bc8bd7332f6fd5e32f1c127b36bc55fedf6b1d26e85ff802348c9c
+        // String message = "359d88771ebbbdefd2356a805af66b4243ab5ca30bb34fe154a0bd49fc4b9b40";
+        // BigInteger r = new BigInteger("ea8472b182012574406ac5f1f5551b64aaa99f71571e5cb87bba7b76b4b17446", 16);
+        // BigInteger vs = new BigInteger("6d13122d3717f23aadc4c0899c39264450fbaa7fbb766c6cb75c2194aa08e210",16);
+        // 359d88771ebbbdefd2356a805af66b4243ab5ca30bb34fe154a0bd49fc4b9b40
 
+        // 435eb303aa0e6c328ddcd10e85202f48e54538f9687d26ae9927035bb07fb2df
+        // 3bce0ed067da9eef12cdb80896fd55491d95f0e51e1b8e727a84e0b7b6c8b259
+
+        // 33b552271de38ff209f2b38fa5fea499a3d5c007ae40f52a1b6c115cffecc00c
+        // 63f90c7dfd0dc83a726de04bd6dcc7e221a4cd89bdef32dcecdae538dfbdd4cc
+
+        // 02f7625fc66ef4611f8efcaeacfc196c9293f0ac13bd1eaf16de1ceb1e36273d
+        // 0fe8637e630673918d18354aef70a09c688c91d862421941c4163e07518d6190
+        String message = "a94c564c4e60767331329ce43096827eb345c02ca3e5ec7a1b417318ec733554";
+        String r = "33b552271de38ff209f2b38fa5fea499a3d5c007ae40f52a1b6c115cffecc00c";
+        String vs = "63f90c7dfd0dc83a726de04bd6dcc7e221a4cd89bdef32dcecdae538dfbdd4cc";
         
-        // a946ce745f444649b490b2ef9398c382013851ee2c1356ffb0f8861b6b260d2b
-        // ae70d51db1d9df72b5931ad880d0cda940cc171d94b2fed337c61b8da6f7f713
-
-        String message = "e149932e5b2717cef1f837e83790bc58911c9d4ee7f02d66bfa0f8727f495305";
-        BigInteger r = new BigInteger("a946ce745f444649b490b2ef9398c382013851ee2c1356ffb0f8861b6b260d2b", 16);
-        BigInteger vs = new BigInteger("ae70d51db1d9df72b5931ad880d0cda940cc171d94b2fed337c61b8da6f7f713",16);
-
+        // Point P1 = acore.recoverPubkey(message, r, vs, 27, 1);
+        // Point P2 = acore.recoverPubkey(message, r, vs, 28, 1);
         Point P = acore.recoverPubkeyCompactEncoded(message, r, vs, 1);
         String RecoveredAccount = util.getEthereumAddressWithPublicKey(P);
         System.out.println("Recovered Account with compact encoded signature: " + RecoveredAccount);
+        // System.out.println("P1: " + P1);
+        // System.out.println("P2: " + P2);
+
+        // acore.verify(message,r.toString(16),vs.toString(16),P1);
+        // acore.verify(message,r.toString(16),vs.toString(16),P2);
+
+        // String RecoveredAccount1 = util.getEthereumAddressWithPublicKey(P1);
+        // String RecoveredAccount2 = util.getEthereumAddressWithPublicKey(P2);
+        // System.out.println("Recovered Account with compact encoded signature: " + RecoveredAccount1);
+        // System.out.println("Recovered Account with compact encoded signature: " + RecoveredAccount2);
+
+
+
 
 
 
