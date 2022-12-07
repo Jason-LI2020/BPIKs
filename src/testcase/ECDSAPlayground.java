@@ -45,10 +45,11 @@ public class ECDSAPlayground {
             // 7. 公钥恢复
             System.out.println("=============== 6. 公钥恢复 =================");
 
-            Point Q1 = acore.recoverPubkey(transaction,new BigInteger(signatures[0],16),new BigInteger(signatures[1],16),27,1);
-            Point Q2 = acore.recoverPubkey(transaction,new BigInteger(signatures[0],16),new BigInteger(signatures[1],16),28,1);
+            Point Q1 = acore.recoverPubkey(transaction,signatures[0],signatures[1],27,1);
+            Point Q2 = acore.recoverPubkey(transaction,signatures[0],signatures[1],28,1);
             System.out.println("恢复Q1:"+Q1);
             System.out.println("恢复Q2:"+Q2);
+
 
 
 

@@ -89,30 +89,17 @@ public class PublicKeyRecoverTest {
     
     public static void publicKeyRecoveryWithCompactEncodedSignature() {
 
-        // String message = "359d88771ebbbdefd2356a805af66b4243ab5ca30bb34fe154a0bd49fc4b9b40";
-        // BigInteger r = new BigInteger("ea8472b182012574406ac5f1f5551b64aaa99f71571e5cb87bba7b76b4b17446", 16);
-        // BigInteger vs = new BigInteger("6d13122d3717f23aadc4c0899c39264450fbaa7fbb766c6cb75c2194aa08e210",16);
-        // 359d88771ebbbdefd2356a805af66b4243ab5ca30bb34fe154a0bd49fc4b9b40
-
-        // 435eb303aa0e6c328ddcd10e85202f48e54538f9687d26ae9927035bb07fb2df
-        // 3bce0ed067da9eef12cdb80896fd55491d95f0e51e1b8e727a84e0b7b6c8b259
-
-        // 33b552271de38ff209f2b38fa5fea499a3d5c007ae40f52a1b6c115cffecc00c
-        // 63f90c7dfd0dc83a726de04bd6dcc7e221a4cd89bdef32dcecdae538dfbdd4cc
-
-        // 02f7625fc66ef4611f8efcaeacfc196c9293f0ac13bd1eaf16de1ceb1e36273d
-        // 0fe8637e630673918d18354aef70a09c688c91d862421941c4163e07518d6190
-        String message = "a94c564c4e60767331329ce43096827eb345c02ca3e5ec7a1b417318ec733554";
-        String r = "33b552271de38ff209f2b38fa5fea499a3d5c007ae40f52a1b6c115cffecc00c";
-        String vs = "63f90c7dfd0dc83a726de04bd6dcc7e221a4cd89bdef32dcecdae538dfbdd4cc";
+        String message = "397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f";
+        String r = "173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882";
+        String s = "4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc";
         
-        // Point P1 = acore.recoverPubkey(message, r, vs, 27, 1);
-        // Point P2 = acore.recoverPubkey(message, r, vs, 28, 1);
-        Point P = acore.recoverPubkeyCompactEncoded(message, r, vs, 1);
-        String RecoveredAccount = util.getEthereumAddressWithPublicKey(P);
-        System.out.println("Recovered Account with compact encoded signature: " + RecoveredAccount);
-        // System.out.println("P1: " + P1);
-        // System.out.println("P2: " + P2);
+        Point P1 = acore.recoverPubkey(message, r, s, 27, 1);
+        Point P2 = acore.recoverPubkey(message, r, s, 28, 1);
+        // Point P = acore.recoverPubkeyCompactEncoded(message, r, vs, 1);
+        // String RecoveredAccount = util.getEthereumAddressWithPublicKey(P);
+        // System.out.println("Recovered Account with compact encoded signature: " + RecoveredAccount);
+        System.out.println("P1: " + P1);
+        System.out.println("P2: " + P2);
 
         // acore.verify(message,r.toString(16),vs.toString(16),P1);
         // acore.verify(message,r.toString(16),vs.toString(16),P2);
