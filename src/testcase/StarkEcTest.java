@@ -76,6 +76,8 @@ public class StarkEcTest {
         // acore.verify(msgHash, r, s, point1);
         // acore.verify(msgHash, r, s, point2);
 
+        System.out.println(System.getProperty("java.library.path"));  
+
     }
 
 }
