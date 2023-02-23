@@ -1,40 +1,80 @@
-package com.vhklabs.ecdsa;
+package com.okx.ecdsa;
 
 
-import com.vhklabs.ecdsa.utils.Base58;
-import com.vhklabs.ecdsa.utils.HEX;
-import com.vhklabs.ecdsa.utils.HashUtil;
-import com.vhklabs.ecdsa.utils.Pocklington;
+import com.okx.ecdsa.utils.Base58;
+import com.okx.ecdsa.utils.HEX;
+import com.okx.ecdsa.utils.HashUtil;
 
 import java.math.BigInteger;
 
 /**
  *  ECDSA CORE
  * @author William Liu
- *  - vhklabs
+ *  - okx
  */
-public class ECDSAcore {
-    // secp256k1
-    // static BigInteger TWO = new BigInteger("2");
-    // static BigInteger THREE = new BigInteger("3");
-    // private BigInteger a= new BigInteger("0");
-    // private BigInteger b= new BigInteger("7");
-    // private BigInteger p= new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",16);
-    // private BigInteger n= new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",16);
-    // private BigInteger h= new BigInteger("01");
-    // //The Bitcoin G point
-    // private Point G = new Point(new BigInteger("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",16),new BigInteger("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",16));
-    
-    // StarkNet
+public class Curve25519core {
+    static BigInteger ZERO = new BigInteger("0");
+    static BigInteger ONE = new BigInteger("1");
     static BigInteger TWO = new BigInteger("2");
     static BigInteger THREE = new BigInteger("3");
-    private BigInteger a= new BigInteger("0000000000000000000000000000000000000000000000000000000000000001", 16);
-    private BigInteger b= new BigInteger("06f21413efbe40de150e596d72f7a8c5609ad26c15c915c1f4cdfcb99cee9e89", 16);
-    private BigInteger p= new BigInteger("800000000000011000000000000000000000000000000000000000000000001", 16);
-    private BigInteger n= new BigInteger("0800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f",16);
-    private BigInteger h= new BigInteger("01");
-    //The Bitcoin G point
-    private Point G = new Point(new BigInteger("1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca",16),new BigInteger("5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f",16));
+
+    // hash function should have 2b-bits output
+    private int b = 256;
+
+    // B*y^2 = x^3 + A*x^2 +x
+    // y^2 = x^3 + 486662 * x^2 + x
+    private BigInteger A = new BigInteger("486662");
+    private BigInteger B = new BigInteger("1");
+
+    // Finite field, p = 2**255 - 19
+    private BigInteger p = new BigInteger("57896044618658097711785492504343953926634992332820282019728792003956564819949");
+    // subgroup order, how many points ed25519 has, n = 2**252 + 27742317777372353535851937790883648493
+    private BigInteger n = new BigInteger("7237005577332262213973186563042994240857116359379907606001950938285454250989");
+    // cofactor
+    private BigInteger h = new BigInteger("8");
+
+    //The Base Poing G 
+    private Point G = new Point(new BigInteger("9"),new BigInteger("14781619447589544791020593568409986887264606134616475288964881837755586237401"));
+    // private Point NEUTRAL_POINT = new Point(ZERO, ONE);
+
+
+
+
+    public String[] generateKeyPair(BigInteger seed) {
+        String[] signature = new String[3];
+
+        String h = HashUtil.getSHA(seed.toString(16),"SHA-512");
+
+        String privateKey = new BigInteger(h.substring(0,b/4),16).toString(2); 
+
+        privateKey = padString(privateKey);     //左边补零至256bit
+        privateKey = "000" + privateKey.substring(3,254) + "10";
+        privateKey = new BigInteger(privateKey,2).toString(16);
+
+        String publicKey = fastMultiply(new BigInteger(privateKey, 16)).getX().toString(16);
+
+        String prefix = new BigInteger(h.substring(b/4),16).toString(16);
+
+        signature[0] = privateKey;
+        signature[1] = publicKey;
+        signature[2] = prefix;
+
+        return signature;
+    }
+
+    private static String padString(String x) {
+        int length = x.length();
+        int pad = 256 - length;
+        if (pad > 0) {
+            for (int i = 0; i < pad; i ++) {
+                x = "0" + x;
+            }
+        }
+        return x;
+    }
+
+
+
 
 
     /**
@@ -50,7 +90,7 @@ public class ECDSAcore {
         do {
 
             BigInteger k = new BigInteger(HashUtil.getSHA(Math.random() + System.currentTimeMillis() + "THHAhshjaYYHJSA^HGHSA", "SHA-256"), 16);
-            r = fastMultiply(k).getX().mod(n);
+            r = fastMultiply(k).getX().mod(p);
             s = (new BigInteger(message, 16).add(new BigInteger(privateKey, 16).multiply(r))).multiply(k.modInverse(n)).mod(n);
 
             //standrad bitcoin signature SIG is <r><s> concatenated together.
@@ -195,9 +235,12 @@ public class ECDSAcore {
         else if (pointQ.equals(Point.POINT_AT_INFINITY)){returnPoint = pointG;}
         else if (isInverse(pointG,pointQ)){returnPoint = Point.POINT_AT_INFINITY;}
         else {
-            BigInteger s = pointQ.getY().subtract(pointG.getY()).mod(p).multiply((pointQ.getX().subtract(pointG.getX())).modInverse(p));
-            BigInteger pointX = s.multiply(s).subtract(pointG.getX()).subtract(pointQ.getX()).mod(p);
-            BigInteger pointY = (s.multiply(pointG.getX().subtract(pointX))).subtract(pointG.getY()).mod(p);
+            BigInteger l = (pointQ.getY().subtract(pointG.getY()).mod(p).multiply((pointQ.getX().subtract(pointG.getX())).modInverse(p))).mod(p);
+            BigInteger pointX = B.multiply(l).multiply(l).subtract(A).subtract(pointG.getX()).subtract(pointQ.getX()).mod(p);
+            BigInteger pointY = TWO.multiply(pointG.getX()).add(pointQ.getX()).add(A).multiply(l)
+                                    .subtract(B.multiply(l).multiply(l).multiply(l))
+                                    .subtract(pointG.getY())
+                                    .mod(p);
             returnPoint = new Point(pointX,pointY);
         }
         return  returnPoint;
@@ -211,9 +254,18 @@ public class ECDSAcore {
     public Point times2(Point pointG){
         Point returnPoint = null;
         if(pointG.equals(Point.POINT_AT_INFINITY)){ returnPoint = pointG;}else {
-            BigInteger s = (THREE.multiply(pointG.getX().modPow(TWO,p)).add(a)).mod(p).multiply(TWO.multiply(pointG.getY()).modInverse(p));
-            BigInteger pointX = s.multiply(s).subtract(pointG.getX()).subtract(pointG.getX()).mod(p);
-            BigInteger pointY = (s.multiply(pointG.getX().subtract(pointX))).subtract(pointG.getY()).mod(p);
+            BigInteger l = (THREE.multiply(pointG.getX().modPow(TWO,p))
+                                .add(TWO.multiply(A).multiply(pointG.getX()))
+                                .add(ONE)
+                            ).mod(p)
+                            .multiply(
+                                (TWO.multiply(B).multiply(pointG.getY())).modInverse(p)
+                            );
+            BigInteger pointX = B.multiply(l).multiply(l).subtract(A).subtract(pointG.getX()).subtract(pointG.getX()).mod(p);
+            BigInteger pointY = TWO.multiply(pointG.getX()).add(pointG.getX()).add(A).multiply(l)
+                                    .subtract(B.multiply(l).multiply(l).multiply(l))
+                                    .subtract(pointG.getY()
+                                ).mod(p);
             returnPoint = new Point(pointX,pointY);
         }
 
@@ -229,8 +281,11 @@ public class ECDSAcore {
      * @param point
      * @return
      */
-    public boolean inPointOnCurve(Point point){
-        return point.getY().multiply(point.getY()).mod(p).equals((point.getX().multiply(point.getX()).multiply(point.getX())).add((a.multiply(point.getX()))).add(b).mod(p));
+    public boolean isPointOnCurve(Point point){
+        return B.multiply(point.getY()).multiply(point.getY()).mod(p).equals(
+            (point.getX().multiply(point.getX()).multiply(point.getX()))
+                .add((A.multiply(point.getX()).multiply(point.getX())))
+                .add(point.getX()).mod(p));
     }
 
     public Point fastMultiplyWithPoint(BigInteger d,Point pointG){
@@ -243,58 +298,5 @@ public class ECDSAcore {
         }
         return point;
     }
-
-
-
-    public int calculateV(Point R, int chainId) {
-        int recoverId = R.getY().mod(new BigInteger("2")).intValue();
-        int v = chainId == 1 ? recoverId + 27 : chainId * 2 + 35 + recoverId;
-        return v;
-    };
-
-    // 恢复紧凑编码 64 bytes 签名对应的公钥
-    public Point recoverPubkeyCompactEncoded(String message, String r, String vs, int chainId) {
-        String firstHex = vs.substring(0, 1);
-
-        int recoverId = Integer.parseInt(firstHex,16) >> 3;
-        int v = chainId == 1 ? recoverId + 27 : chainId * 2 + 35 + recoverId;
-
-        String s1 = String.valueOf(Integer.parseInt(firstHex,16) % 8 );
-        String s2 = vs.substring(1);
-
-        String s = s1 + s2;
-
-        return recoverPubkey(message, r, s, v, chainId);
-    }
-
-    public Point recoverPubkey(String message, String r, String s, int v, int chainId) {
-        Point R = recoverR(r, v, chainId);
-
-        // u1 = - m * r^(-1) mod n; 
-        BigInteger u1 = new BigInteger("0").subtract(new BigInteger(message,16).multiply(new BigInteger(r,16).modInverse(n))).mod(n);
-        // u2 = s * r^(-1) mod n;
-        BigInteger u2 = new BigInteger(s,16).multiply(new BigInteger(r,16).modInverse(n)).mod(n);
-        // Q = u1 * G + u2 * R
-        Point Q = add(fastMultiply(u1), fastMultiplyWithPoint(u2, R));
-
-        return Q;
-
-    }
-
-    public Point recoverR(String r, int v, int chainId) {
-        BigInteger x = new BigInteger(r,16);
-        BigInteger alpha = x.pow(3).add(a.multiply(x)).add(b).mod(p);
-        BigInteger beta = Pocklington.sqrt(alpha, p);
-        BigInteger y = beta;
-        int recoverId = chainId == 1 ? v - 27 : v - 2 * chainId - 35;
-  
-        // isOdd 代表的是真实的 Rx 的奇偶性，如果与 beta 的奇偶性不同，则需要翻转
-        boolean isOdd = (recoverId % 2) > 0;
-        if ((y.intValue()%2 == 0) ^ (!isOdd) ) {
-            y = p.subtract(y);
-        }
-        return new Point (x, y);
-    };
-
 
 }

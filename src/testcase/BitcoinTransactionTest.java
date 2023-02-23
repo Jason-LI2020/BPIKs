@@ -1,10 +1,10 @@
 package testcase;
 
-import com.vhklabs.ecdsa.BitcoinTransaction;
-import com.vhklabs.ecdsa.ECDSAcore;
-import com.vhklabs.ecdsa.utils.PrivateKeyUtil;
-import com.vhklabs.ecdsa.utils.BitcoinUtil;
-import com.vhklabs.ecdsa.utils.HashUtil;
+import com.okx.ecdsa.BitcoinTransaction;
+import com.okx.ecdsa.ECDSAcore;
+import com.okx.ecdsa.utils.PrivateKeyUtil;
+import com.okx.ecdsa.utils.BitcoinUtil;
+import com.okx.ecdsa.utils.HashUtil;
 
 import java.math.BigInteger;
 

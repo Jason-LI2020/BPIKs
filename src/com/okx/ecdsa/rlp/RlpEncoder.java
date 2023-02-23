@@ -1,10 +1,10 @@
-package com.vhklabs.ecdsa.rlp;
+package com.okx.ecdsa.rlp;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static com.vhklabs.ecdsa.rlp.RlpDecoder.OFFSET_SHORT_LIST;
-import static com.vhklabs.ecdsa.rlp.RlpDecoder.OFFSET_SHORT_STRING;
+import static com.okx.ecdsa.rlp.RlpDecoder.OFFSET_SHORT_LIST;
+import static com.okx.ecdsa.rlp.RlpDecoder.OFFSET_SHORT_STRING;
 
 
 /**

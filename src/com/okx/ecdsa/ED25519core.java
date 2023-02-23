@@ -1,9 +1,9 @@
-package com.vhklabs.ecdsa;
+package com.okx.ecdsa;
 
 
-import com.vhklabs.ecdsa.utils.Base58;
-import com.vhklabs.ecdsa.utils.HEX;
-import com.vhklabs.ecdsa.utils.HashUtil;
+import com.okx.ecdsa.utils.Base58;
+import com.okx.ecdsa.utils.HEX;
+import com.okx.ecdsa.utils.HashUtil;
 
 import java.math.BigInteger;
 

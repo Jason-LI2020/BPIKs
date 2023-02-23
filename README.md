@@ -1,17 +1,16 @@
-# BPIKs
+# MPC by OKX
 区块链协议实现参考工具包。
 
 > 助力开发者研发bitcoin,ethereum等公链协议。
->
-> Powered by VHKlabs(北京维港区块链科技有限公司区块链协议实验室)
+
 
 
 
 #### 目的
 
-我们旨在给开发者最简洁的实现，方便快速验证协议开发中遇到的问题，我们劲量减少其他第三方的依赖给开发者产生勿扰。
+我们旨在给开发者最简洁的实现，方便快速验证协议开发中遇到的问题，我们尽量减少其他第三方的依赖。
 
-我们劲量将方法写成静态，这样不去依赖其他方法，这样你可以参考只需要在一个方法中看清整个流程处理脉络，方便快速验证自己的协议处理思路。
+我们尽量将方法写成静态，这样不去依赖其他方法，这样你可以参考只需要在一个方法中看清整个流程处理脉络，方便快速验证自己的协议处理思路。
 
 
 
@@ -34,7 +33,7 @@
 
 #### 代码描述
 
-com.vhklabs.ecdsa.utils.BitcoinUtil.java    bitcoin协议构建工具
+com.okx.ecdsa.utils.BitcoinUtil.java    bitcoin协议构建工具
 
 ```java
 String getTxIndex(int index)						unspend tx索引序列化
@@ -47,11 +46,11 @@ String derSignature(String[] signature)				DER-encoded signature
 String address2scriptpubkey(String to)				地址解析成OPCODE Script	
 ```
 
-com.vhklabs.ecdsa.rlp.*   							ethereum rlp
+com.okx.ecdsa.rlp.*   							ethereum rlp
 
-com.vhklabs.ecdsa.utils.HashUtil.java       hash工具
+com.okx.ecdsa.utils.HashUtil.java       hash工具
 
-com.vhklabs.ecdsa.ECDSAcore.java           椭圆曲线私钥公钥签名验证
+com.okx.ecdsa.ECDSAcore.java           椭圆曲线私钥公钥签名验证
 
 ```
 String[] sign(String message,String privateKey)		签名
@@ -65,11 +64,11 @@ boolean inPointOnCurve(Point point)					判断坐标点是否在椭圆曲线上
 Point fastMultiplyWithPoint(BigInteger d,Point pointG)	椭圆曲线非G点快速乘法
 ```
 
-com.vhklabs.ecdsa.Point.java					  椭圆曲线点坐标
+com.okx.ecdsa.Point.java					  椭圆曲线点坐标
 
-com.vhklabs.ecdsa.BitcoinTransaction.java	 bitcoin raw transaction build&sign
+com.okx.ecdsa.BitcoinTransaction.java	 bitcoin raw transaction build&sign
 
-com.vhklabs.ecdsa.utils.PrivateKeyUtil.java     私钥工具
+com.okx.ecdsa.utils.PrivateKeyUtil.java     私钥工具
 
 ```java
 String getEthereumAddress(String priv)    			获取以太坊地址 EIP55
@@ -135,7 +134,7 @@ https://live.blockcypher.com/btc-testnet/tx/71e28f2dc513c977f2d3787a6b9df956db25
 #### 测试用例
 
 ```java
-com.vhklabs.ecdsa.testcase 包中为各种方法的测试用例
+com.okx.ecdsa.testcase 包中为各种方法的测试用例
 ```
 
 

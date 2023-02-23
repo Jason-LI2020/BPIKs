@@ -1,13 +1,13 @@
 package testcase;
 
 
-import com.vhklabs.ecdsa.ECDSAcore;
-import com.vhklabs.ecdsa.ED25519core;
-import com.vhklabs.ecdsa.Curve25519core;
-import com.vhklabs.ecdsa.Point;
-import com.vhklabs.ecdsa.utils.Base58;
-import com.vhklabs.ecdsa.utils.HEX;
-import com.vhklabs.ecdsa.utils.HashUtil;
+import com.okx.ecdsa.ECDSAcore;
+import com.okx.ecdsa.ED25519core;
+import com.okx.ecdsa.Curve25519core;
+import com.okx.ecdsa.Point;
+import com.okx.ecdsa.utils.Base58;
+import com.okx.ecdsa.utils.HEX;
+import com.okx.ecdsa.utils.HashUtil;
 
 import security.misc.HomomorphicException;
 

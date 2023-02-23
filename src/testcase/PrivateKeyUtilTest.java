@@ -1,6 +1,6 @@
 package testcase;
 
-import com.vhklabs.ecdsa.utils.PrivateKeyUtil;
+import com.okx.ecdsa.utils.PrivateKeyUtil;
 
 public class PrivateKeyUtilTest {
     public static void main(String[] args) {

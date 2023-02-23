@@ -1,4 +1,4 @@
-package com.vhklabs.ecdsa.rlp;
+package com.okx.ecdsa.rlp;
 
 /**
  * Base RLP type.

@@ -1,4 +1,4 @@
-package com.vhklabs.ecdsa.utils;
+package com.okx.ecdsa.utils;
 
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.bouncycastle.jcajce.provider.digest.Keccak;

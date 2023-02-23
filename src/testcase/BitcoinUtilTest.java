@@ -1,6 +1,6 @@
 package testcase;
 
-import com.vhklabs.ecdsa.utils.BitcoinUtil;
+import com.okx.ecdsa.utils.BitcoinUtil;
 
 /**
  * 非标准测试案例

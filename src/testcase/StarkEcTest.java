@@ -1,8 +1,8 @@
 package testcase;
 
-import com.vhklabs.ecdsa.ECDSAcore;
-import com.vhklabs.ecdsa.Point;
-import com.vhklabs.ecdsa.utils.PrivateKeyUtil;
+import com.okx.ecdsa.ECDSAcore;
+import com.okx.ecdsa.Point;
+import com.okx.ecdsa.utils.PrivateKeyUtil;
 import security.misc.HomomorphicException;
 import java.math.BigInteger;
 

@@ -1,7 +1,7 @@
-package com.vhklabs.ecdsa;
+package com.okx.ecdsa;
 
-import com.vhklabs.ecdsa.utils.BitcoinUtil;
-import com.vhklabs.ecdsa.utils.HashUtil;
+import com.okx.ecdsa.utils.BitcoinUtil;
+import com.okx.ecdsa.utils.HashUtil;
 
 import java.util.BitSet;
 

@@ -1,4 +1,4 @@
-package com.vhklabs.ecdsa;
+package com.okx.ecdsa;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

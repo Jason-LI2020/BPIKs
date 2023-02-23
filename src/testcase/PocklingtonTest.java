@@ -1,6 +1,6 @@
 package testcase;
 
-import com.vhklabs.ecdsa.utils.Pocklington;
+import com.okx.ecdsa.utils.Pocklington;
 import java.math.BigInteger;
 
 public class PocklingtonTest {

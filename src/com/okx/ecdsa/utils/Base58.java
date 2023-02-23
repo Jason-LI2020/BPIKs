@@ -1,4 +1,4 @@
-package com.vhklabs.ecdsa.utils;
+package com.okx.ecdsa.utils;
 
 public class Base58 {
     private static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"

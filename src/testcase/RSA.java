@@ -1,6 +1,6 @@
 package testcase;
 
-import com.vhklabs.ecdsa.utils.HashUtil;
+import com.okx.ecdsa.utils.HashUtil;
 import java.math.BigInteger;
 
 public class RSA {
