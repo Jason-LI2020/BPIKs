@@ -15,26 +15,26 @@ import java.math.BigInteger;
  */
 public class ECDSAcore {
     // secp256k1
-    // static BigInteger TWO = new BigInteger("2");
-    // static BigInteger THREE = new BigInteger("3");
-    // private BigInteger a= new BigInteger("0");
-    // private BigInteger b= new BigInteger("7");
-    // private BigInteger p= new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",16);
-    // private BigInteger n= new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",16);
-    // private BigInteger h= new BigInteger("01");
-    // //The Bitcoin G point
-    // private Point G = new Point(new BigInteger("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",16),new BigInteger("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",16));
-    
-    // StarkNet
     static BigInteger TWO = new BigInteger("2");
     static BigInteger THREE = new BigInteger("3");
-    private BigInteger a= new BigInteger("0000000000000000000000000000000000000000000000000000000000000001", 16);
-    private BigInteger b= new BigInteger("06f21413efbe40de150e596d72f7a8c5609ad26c15c915c1f4cdfcb99cee9e89", 16);
-    private BigInteger p= new BigInteger("800000000000011000000000000000000000000000000000000000000000001", 16);
-    private BigInteger n= new BigInteger("0800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f",16);
+    private BigInteger a= new BigInteger("0");
+    private BigInteger b= new BigInteger("7");
+    private BigInteger p= new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",16);
+    private BigInteger n= new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",16);
     private BigInteger h= new BigInteger("01");
     //The Bitcoin G point
-    private Point G = new Point(new BigInteger("1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca",16),new BigInteger("5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f",16));
+    private Point G = new Point(new BigInteger("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",16),new BigInteger("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",16));
+    
+    // StarkNet
+    // static BigInteger TWO = new BigInteger("2");
+    // static BigInteger THREE = new BigInteger("3");
+    // private BigInteger a= new BigInteger("0000000000000000000000000000000000000000000000000000000000000001", 16);
+    // private BigInteger b= new BigInteger("06f21413efbe40de150e596d72f7a8c5609ad26c15c915c1f4cdfcb99cee9e89", 16);
+    // private BigInteger p= new BigInteger("800000000000011000000000000000000000000000000000000000000000001", 16);
+    // private BigInteger n= new BigInteger("0800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f",16);
+    // private BigInteger h= new BigInteger("01");
+    // //The Bitcoin G point
+    // private Point G = new Point(new BigInteger("1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca",16),new BigInteger("5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f",16));
 
 
     /**

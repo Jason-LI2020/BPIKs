@@ -438,11 +438,12 @@ public final class PaillierCipher extends CipherSpi implements CipherConstants
 			throw new HomomorphicException("Encryption Invalid Parameter: the plaintext is not in N"
 					+ " (plaintext >= N) value of Plain Text is: " + plaintext);
 		}
-
 		BigInteger randomness = NTL.RandomBnd(pk.n);
 		BigInteger tmp1 = pk.g.modPow(plaintext, pk.modulus);
 		BigInteger tmp2 = randomness.modPow(pk.n, pk.modulus);
+
 		BigInteger ciphertext = NTL.POSMOD(tmp1.multiply(tmp2), pk.modulus);
+
 		return ciphertext;
 	}
 

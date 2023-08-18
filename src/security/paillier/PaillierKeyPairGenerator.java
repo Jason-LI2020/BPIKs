@@ -12,7 +12,7 @@ public class PaillierKeyPairGenerator extends KeyPairGeneratorSpi implements Cip
 	// k2 controls the error probability of the primality testing algorithm
 	// (specifically, with probability at most 2^(-k2) a NON prime is chosen).
 	private final static int CERTAINTY = 40;
-	private int keysize = 1024;
+	private int keysize = 2048;
 	private SecureRandom rnd = null;
 	
 	public void initialize(int keysize, SecureRandom random) 
@@ -50,14 +50,15 @@ public class PaillierKeyPairGenerator extends KeyPairGeneratorSpi implements Cip
 	
 		// For signature
 		// Build base g \in Z_{n^2} with order n
-		BigInteger g = TWO;
-		g = find_g(g, lambda, modulus, n);
+		// BigInteger g = TWO;
+		// g = find_g(g, lambda, modulus, n);
 		
-		// Beware of flaw with Paillier if g^{lambda} = 1 (mod n^2)
-		while(g.modPow(lambda, modulus).equals(BigInteger.ONE))
-		{
-			g = find_g(g.add(BigInteger.ONE), lambda, modulus, n);
-		}
+		// // Beware of flaw with Paillier if g^{lambda} = 1 (mod n^2)
+		// while(g.modPow(lambda, modulus).equals(BigInteger.ONE))
+		// {
+		// 	g = find_g(g.add(BigInteger.ONE), lambda, modulus, n);
+		// }
+		BigInteger g = n.add(BigInteger.ONE);
 		
 		BigInteger gcd = p.subtract(BigInteger.ONE).gcd(q.subtract(BigInteger.ONE));
 		BigInteger alpha = find_alpha(lambda.divide(gcd), modulus);
