@@ -1,6 +1,5 @@
 package testcase;
 
-
 import com.okx.ecdsa.ECDSAcore;
 import com.okx.ecdsa.utils.Pedersen;
 import com.okx.ecdsa.Point;
@@ -15,18 +14,18 @@ import security.paillier.PaillierPublicKey;
 import java.math.BigInteger;
 import java.security.KeyPair;
 
-
+// This attack was disclosed by fireblock Augest 2023: 
+// https://www.fireblocks.com/blog/lindell17-abort-vulnerability-technical-report
+// https://eprint.iacr.org/2023/1234.pdf
+// This fix solution is based on https://eprint.iacr.org/2020/492.pdf, chapter 4.2
 public class Lindell17Attack {
          public static void main(String[] args) throws HomomorphicException{
         // k = k1 * k2, x = x1 + x2
-        // https://eprint.iacr.org/2020/492.pdf, 4.2
         System.out.println("==========================  invalid zk proof aff-g  ===============================");
         lindell_test_zk_invalid();
         
         System.out.println("==========================  valid zk proof aff-g  ===============================");
         lindell_test_zk_valid();
-
-
 
     }
 
@@ -55,7 +54,6 @@ public class Lindell17Attack {
         Point R2 = acore.fastMultiply(k2);
         Point R = acore.fastMultiplyWithPoint(k2, R1);
         BigInteger r = R.getX().mod(n);
-
 
         // 3. P1 send ckey = enc(key1) to P2
 		PaillierKeyPairGenerator pa = new PaillierKeyPairGenerator();
@@ -108,7 +106,6 @@ public class Lindell17Attack {
 
         // String s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
         String s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
-
 
         // ============================ 3. signature verification ===============================
         // 6. signature verification 
@@ -220,7 +217,6 @@ public class Lindell17Attack {
         Point R = acore.fastMultiplyWithPoint(k2, R1);
         BigInteger r = R.getX().mod(n);
 
-
         // 3. P1 send ckey = enc(key1) to P2
 		PaillierKeyPairGenerator pa = new PaillierKeyPairGenerator();
 		KeyPair paillier = pa.generateKeyPair();		
@@ -258,7 +254,6 @@ public class Lindell17Attack {
 
         // String s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
         String s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
-
 
         // ============================ 3. signature verification ===============================
         // 6. signature verification 
