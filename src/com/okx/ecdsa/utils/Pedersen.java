@@ -9,15 +9,15 @@ import java.util.Random;
 // p = 2 * p' + 1, q = 2 * q' + 1, p',q' are primes
 // n = p * q
 // t = random(1, p)
-// lamda = random(1, p)
-// s = t ^ lamda
+// lambda = random(1, p)
+// s = t ^ lambda
 // commit(m) = t^m * s^r (mod n)
 public class Pedersen {
     private BigInteger p;
     private BigInteger q;
     public BigInteger n;
 
-    // s = t^lamda, which lamda is a secret
+    // s = t^lambda, which lambda is a secret
     private BigInteger t;
     private BigInteger s;
     static BigInteger security = new BigInteger("100");
@@ -39,9 +39,9 @@ public class Pedersen {
         this.n = p.multiply(q);
 
         this.t = getRandomNumber(security);
-        BigInteger lamda = getRandomNumber(security);
+        BigInteger lambda = getRandomNumber(security);
 
-        this.s = t.modPow(lamda, n);
+        this.s = t.modPow(lambda, n);
 
         return;
     }
