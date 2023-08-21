@@ -69,13 +69,13 @@ public class Lindell17Attack {
         // ============================ 2. sign ===============================
         BigInteger m = new BigInteger(message,16);
 
-        // y = ro * n + k2^(-1) * (m + r * x2) mod n
-        BigInteger ro = pedersen.getRandomNumber(256);
-        BigInteger y = ro.multiply(n).add(k2.modInverse(n).multiply(m.add(r.multiply(key2))).mod(n));
+        // y = rho1 * n + k2^(-1) * (m + r * x2) mod n
+        BigInteger rho1 = pedersen.getRandomNumber(256);
+        BigInteger y = rho1.multiply(n).add(k2.modInverse(n).multiply(m.add(r.multiply(key2))).mod(n));
 
-        // c1 = (1 + N)^y * rou^N mod N^2 = enc(y, pk)
-        BigInteger rou = pedersen.getRandomNumber(256);
-        BigInteger c1 = (BigInteger.ONE.add(N)).modPow(y, NN).multiply(rou.modPow(N, NN)).mod(NN);
+        // c1 = (1 + N)^y * rho2^N mod N^2 = enc(y, pk)
+        BigInteger rho2 = pedersen.getRandomNumber(256);
+        BigInteger c1 = (BigInteger.ONE.add(N)).modPow(y, NN).multiply(rho2.modPow(N, NN)).mod(NN);
 
         // make sure _r is odd
         BigInteger _r = r;
@@ -95,7 +95,7 @@ public class Lindell17Attack {
         // BigInteger x = k2.modInverse(N).multiply(_r).mod(N);
         Point X = acore.fastMultiply(x);
 
-        // c3 = mul(ckey，x)
+        // c2 = mul(ckey，x)
         BigInteger c2 = PaillierCipher.multiply(ckey, x, pk); 
 
         // c3 = add(c1, c2）
@@ -103,8 +103,6 @@ public class Lindell17Attack {
 
         // 5. s= k1^(−1)*s_
         BigInteger s_ = PaillierCipher.decrypt(c, sk);
-
-        // String s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
         String s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
 
         // ============================ 3. signature verification ===============================
@@ -113,7 +111,7 @@ public class Lindell17Attack {
 
         // ============================ 4. generate zk proof ===============================
         // x = k2^(-1) * _r, maximum length of x is 2 * 256 = 512 bits
-        // y = ro * n + k2^(-1) * (m + r * x2) mod n, maximum length of y is 3 * 256 = 768 bits
+        // y = rho1 * n + k2^(-1) * (m + r * x2) mod n, maximum length of y is 3 * 256 = 768 bits
         int l = 2 * 256;
         int l1 = 3 * 256;
         int epsilon = 3 * 256;
@@ -123,10 +121,10 @@ public class Lindell17Attack {
         BigInteger beta = pedersen.getRandomNumber(l1 + epsilon);
 
         BigInteger rp = pedersen.getRandomNumber(N.toString(2).length());
-        BigInteger gama = pedersen.getRandomNumber(l + epsilon + pedersen.n.toString(2).length());
+        BigInteger gamma = pedersen.getRandomNumber(l + epsilon + pedersen.n.toString(2).length());
         BigInteger mp = pedersen.getRandomNumber(l + pedersen.n.toString(2).length());
         BigInteger delta = pedersen.getRandomNumber(l + epsilon + pedersen.n.toString(2).length());
-        BigInteger u = pedersen.getRandomNumber(l + pedersen.n.toString(2).length());
+        BigInteger mu = pedersen.getRandomNumber(l + pedersen.n.toString(2).length());
 
         // A = ckey^alpha * (1 + N)^beta * rp^N mod N^2
         BigInteger A = ckey.modPow(alpha, NN).multiply((BigInteger.ONE.add(N)).modPow(beta, NN).multiply(rp.modPow(N, NN))).mod(NN);
@@ -134,8 +132,8 @@ public class Lindell17Attack {
         // Bx = alpha * G
         Point Bx = acore.fastMultiply(alpha);
 
-        // E = s^alpha * t^gama
-        BigInteger E = pedersen.commit(alpha, gama);
+        // E = s^alpha * t^gamma
+        BigInteger E = pedersen.commit(alpha, gamma);
 
         // S = s^x * t^mp
         BigInteger S = pedersen.commit(x, mp);
@@ -143,8 +141,8 @@ public class Lindell17Attack {
         // F = s^beta * t^delta
         BigInteger F = pedersen.commit(beta, delta);
 
-        // T = s^y * t^u
-        BigInteger T = pedersen.commit(y, u);
+        // T = s^y * t^mu
+        BigInteger T = pedersen.commit(y, mu);
 
         // Verifier challenge，could be transfered to NIZK by FS-transform
         BigInteger e = pedersen.getRandomNumber(255);
@@ -152,14 +150,15 @@ public class Lindell17Attack {
         // Prover reply challenge
         // z1 = alpha + e * x
         // z2 = beta + e * y
-        // z3 = gama + e * mp
-        // z4 = delta + e * u
-        // w = rp * rou^e mod N
+        // z3 = gamma + e * mp
+        // z4 = delta + e * mu
+        // w = rp * rho3^e mod N
         BigInteger z1 = alpha.add(e.multiply(x));
         BigInteger z2 = beta.add(e.multiply(y));
-        BigInteger z3 = gama.add(e.multiply(mp));
-        BigInteger z4 = delta.add(e.multiply(u));
-        BigInteger w = rp.multiply(rou.modPow(e, N)).mod(N);
+        BigInteger z3 = gamma.add(e.multiply(mp));
+        BigInteger z4 = delta.add(e.multiply(mu));
+        BigInteger rho3 = pedersen.getRandomNumber(256);
+        BigInteger w = rp.multiply(rho3.modPow(e, N)).mod(N);
 
         // ============================ 3. validate zk proof ===============================
         // Verifier verify
@@ -231,19 +230,19 @@ public class Lindell17Attack {
         // ============================ 2. sign ===============================
         BigInteger m = new BigInteger(message,16);
 
-        // y = ro * n + k2^(-1) * (m + r * x2) mod n
-        BigInteger ro = pedersen.getRandomNumber(256);
-        BigInteger y = ro.multiply(n).add(k2.modInverse(n).multiply(m.add(r.multiply(key2))).mod(n));
+        // y = rho1 * n + k2^(-1) * (m + r * x2) mod n
+        BigInteger rho1 = pedersen.getRandomNumber(256);
+        BigInteger y = rho1.multiply(n).add(k2.modInverse(n).multiply(m.add(r.multiply(key2))).mod(n));
 
-        // c1 = (1 + N)^y * rou^N mod N^2 = enc(y, pk)
-        BigInteger rou = pedersen.getRandomNumber(256);
-        BigInteger c1 = (BigInteger.ONE.add(N)).modPow(y, NN).multiply(rou.modPow(N, NN)).mod(NN);
+        // c1 = (1 + N)^y * rho2^N mod N^2 = enc(y, pk)
+        BigInteger rho2 = pedersen.getRandomNumber(256);
+        BigInteger c1 = (BigInteger.ONE.add(N)).modPow(y, NN).multiply(rho2.modPow(N, NN)).mod(NN);
 
         // x = k2^(-1) * r
         BigInteger x = k2.modInverse(n).multiply(r).mod(n);
         Point X = acore.fastMultiply(x);
 
-        // c3 = mul(ckey，x)
+        // c2 = mul(ckey，x)
         BigInteger c2 = PaillierCipher.multiply(ckey, x, pk); 
 
         // c3 = add(c1, c2）
@@ -251,8 +250,6 @@ public class Lindell17Attack {
 
         // 5. s= k1^(−1)*s_
         BigInteger s_ = PaillierCipher.decrypt(c, sk);
-
-        // String s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
         String s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
 
         // ============================ 3. signature verification ===============================
@@ -260,8 +257,8 @@ public class Lindell17Attack {
         acore.verify(message, r.toString(16), s, P);
 
         // ============================ 4. generate zk proof ===============================
-        // x = k2^(-1) * _r, maximum length of x is 2 * 256 = 512 bits
-        // y = ro * n + k2^(-1) * (m + r * x2) mod n, maximum length of y is 3 * 256 = 768 bits
+        // x = k2^(-1) * r, maximum length of x is 2 * 256 = 512 bits
+        // y = rho1 * n + k2^(-1) * (m + r * x2) mod n, maximum length of y is 3 * 256 = 768 bits
         int l = 2 * 256;
         int l1 = 3 * 256;
         int epsilon = 3 * 256;
@@ -271,10 +268,10 @@ public class Lindell17Attack {
         BigInteger beta = pedersen.getRandomNumber(l1 + epsilon);
 
         BigInteger rp = pedersen.getRandomNumber(N.toString(2).length());
-        BigInteger gama = pedersen.getRandomNumber(l + epsilon + pedersen.n.toString(2).length());
+        BigInteger gamma = pedersen.getRandomNumber(l + epsilon + pedersen.n.toString(2).length());
         BigInteger mp = pedersen.getRandomNumber(l + pedersen.n.toString(2).length());
         BigInteger delta = pedersen.getRandomNumber(l + epsilon + pedersen.n.toString(2).length());
-        BigInteger u = pedersen.getRandomNumber(l + pedersen.n.toString(2).length());
+        BigInteger mu = pedersen.getRandomNumber(l + pedersen.n.toString(2).length());
 
         // A = ckey^alpha * (1 + N)^beta * rp^N mod N^2
         BigInteger A = ckey.modPow(alpha, NN).multiply((BigInteger.ONE.add(N)).modPow(beta, NN).multiply(rp.modPow(N, NN))).mod(NN);
@@ -282,8 +279,8 @@ public class Lindell17Attack {
         // Bx = alpha * G
         Point Bx = acore.fastMultiply(alpha);
 
-        // E = s^alpha * t^gama
-        BigInteger E = pedersen.commit(alpha, gama);
+        // E = s^alpha * t^gamma
+        BigInteger E = pedersen.commit(alpha, gamma);
 
         // S = s^x * t^mp
         BigInteger S = pedersen.commit(x, mp);
@@ -291,8 +288,8 @@ public class Lindell17Attack {
         // F = s^beta * t^delta
         BigInteger F = pedersen.commit(beta, delta);
 
-        // T = s^y * t^u
-        BigInteger T = pedersen.commit(y, u);
+        // T = s^y * t^mu
+        BigInteger T = pedersen.commit(y, mu);
 
         // Verifier challenge，could be transfered to NIZK by FS-transform
         BigInteger e = pedersen.getRandomNumber(255);
@@ -300,14 +297,15 @@ public class Lindell17Attack {
         // Prover reply challenge
         // z1 = alpha + e * x
         // z2 = beta + e * y
-        // z3 = gama + e * mp
-        // z4 = delta + e * u
-        // w = rp * rou^e mod N
+        // z3 = gamma + e * mp
+        // z4 = delta + e * mu
+        // w = rp * rho3^e mod N
         BigInteger z1 = alpha.add(e.multiply(x));
         BigInteger z2 = beta.add(e.multiply(y));
-        BigInteger z3 = gama.add(e.multiply(mp));
-        BigInteger z4 = delta.add(e.multiply(u));
-        BigInteger w = rp.multiply(rou.modPow(e, N)).mod(N);
+        BigInteger z3 = gamma.add(e.multiply(mp));
+        BigInteger z4 = delta.add(e.multiply(mu));
+        BigInteger rho3 = pedersen.getRandomNumber(256);
+        BigInteger w = rp.multiply(rho3.modPow(e, N)).mod(N);
 
         // ============================ 3. validate zk proof ===============================
         // Verifier verify
