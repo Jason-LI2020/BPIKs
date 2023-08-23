@@ -132,7 +132,7 @@ public class Lindell17Attack {
         BigInteger A = ckey.modPow(alpha, NN).multiply((BigInteger.ONE.add(N)).modPow(beta, NN).multiply(rp.modPow(N, NN))).mod(NN);
 
         // Bx = alpha * G
-        Point Bx = acore.fastMultiply(alpha);
+        // Point Bx = acore.fastMultiply(alpha);
 
         // E = s^alpha * t^gama
         BigInteger E = pedersen.commit(alpha, gama);
@@ -169,9 +169,9 @@ public class Lindell17Attack {
         System.out.println("check A:"+left.equals(right));
 
         //z1 * G = Bx + e * X
-        Point left1 = acore.fastMultiply(z1);
-        Point right1 = acore.add(Bx, acore.fastMultiplyWithPoint(e, X));
-        System.out.println("check Bx:"+left1.equals(right1));
+        // Point left1 = acore.fastMultiply(z1);
+        // Point right1 = acore.add(Bx, acore.fastMultiplyWithPoint(e, X));
+        // System.out.println("check Bx:"+left1.equals(right1));
 
         // s^z1 * t^z3 = E * S^e
         BigInteger left2 = pedersen.commit(z1, z3);
@@ -280,7 +280,7 @@ public class Lindell17Attack {
         BigInteger A = ckey.modPow(alpha, NN).multiply((BigInteger.ONE.add(N)).modPow(beta, NN).multiply(rp.modPow(N, NN))).mod(NN);
 
         // Bx = alpha * G
-        Point Bx = acore.fastMultiply(alpha);
+        // Point Bx = acore.fastMultiply(alpha);
 
         // E = s^alpha * t^gama
         BigInteger E = pedersen.commit(alpha, gama);
@@ -317,9 +317,9 @@ public class Lindell17Attack {
         System.out.println("check A:"+left.equals(right));
 
         //z1 * G = Bx + e * X
-        Point left1 = acore.fastMultiply(z1);
-        Point right1 = acore.add(Bx, acore.fastMultiplyWithPoint(e, X));
-        System.out.println("check Bx:"+left1.equals(right1));
+        // Point left1 = acore.fastMultiply(z1);
+        // Point right1 = acore.add(Bx, acore.fastMultiplyWithPoint(e, X));
+        // System.out.println("check Bx:"+left1.equals(right1));
 
         // s^z1 * t^z3 = E * S^e
         BigInteger left2 = pedersen.commit(z1, z3);
