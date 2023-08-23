@@ -14,7 +14,7 @@ import security.paillier.PaillierPublicKey;
 import java.math.BigInteger;
 import java.security.KeyPair;
 
-// This attack was disclosed by fireblock Augest 2023: 
+// This attack was disclosed by fireblocks on Augest 2023: 
 // https://www.fireblocks.com/blog/lindell17-abort-vulnerability-technical-report
 // https://eprint.iacr.org/2023/1234.pdf
 // This fix solution is based on https://eprint.iacr.org/2020/492.pdf, chapter 4.2

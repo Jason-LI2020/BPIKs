@@ -30,12 +30,12 @@ public class Pedersen {
     } 
 
     public void setup(int security){
-        BigInteger _p = getRandomNumber(security-1);
-        BigInteger _q = getRandomNumber(security-1);
-        _p = _p.nextProbablePrime();
-        _q = _q.nextProbablePrime();
-        this.p = BigInteger.TWO.multiply(_p).add(BigInteger.ONE);
-        this.q = BigInteger.TWO.multiply(_q).add(BigInteger.ONE);
+        BigInteger _p = getRandomNumber(security);
+        BigInteger _q = getRandomNumber(security);
+        p = _p.nextProbablePrime();
+        q = _q.nextProbablePrime();
+        // this.p = BigInteger.TWO.multiply(_p).add(BigInteger.ONE);
+        // this.q = BigInteger.TWO.multiply(_q).add(BigInteger.ONE);
         this.n = p.multiply(q);
 
         this.t = getRandomNumber(security);
