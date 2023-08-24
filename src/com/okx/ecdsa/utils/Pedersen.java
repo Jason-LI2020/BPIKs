@@ -6,7 +6,7 @@ import java.util.Random;
 
 // 
 // https://asecuritysite.com/zero/ped
-// p = 2 * p' + 1, q = 2 * q' + 1, p',q' are primes
+// p,q are primes
 // n = p * q
 // t = random(1, p)
 // lamda = random(1, p)
@@ -18,8 +18,8 @@ public class Pedersen {
     public BigInteger n;
 
     // s = t^lamda, which lamda is a secret
-    private BigInteger t;
-    private BigInteger s;
+    public BigInteger t;
+    public BigInteger s;
     static BigInteger security = new BigInteger("100");
 
     public BigInteger getRandomNumber(int bitlength) { 

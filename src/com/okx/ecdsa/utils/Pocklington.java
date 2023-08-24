@@ -20,7 +20,7 @@ public class Pocklington {
      * @param p 
      * @return x
      */
-    public BigInteger sqrt(BigInteger a, BigInteger p){
+    public static BigInteger sqrt(BigInteger a, BigInteger p){
 
         if (!quadraticResidue(a, p)) {
             System.out.println("a is not quadraticResidue : " + a);

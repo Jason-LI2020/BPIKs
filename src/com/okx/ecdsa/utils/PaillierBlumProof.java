@@ -3,43 +3,94 @@ package com.okx.ecdsa.utils;
 import java.math.BigInteger;
 
 public class PaillierBlumProof {
-    NumericUtil numericUtil = new NumericUtil();
+
+    public BigInteger w;
+    public BigInteger[] x_arr;
+    public BigInteger[] a_arr;
+    public BigInteger[] b_arr;
+    public BigInteger[] z_arr;
+
+    // public BigInteger[] y_arr;
+
 
     public boolean prove(BigInteger N, BigInteger p, BigInteger q, int security){
+        NumericUtil numericUtil = new NumericUtil();
+
         if(N.compareTo(p.multiply(q)) != 0) {return false;};
 
-        BigInteger w = getJacobi(p, q);
+        this.w = numericUtil.getRandomNumber(N.bitLength()).mod(N);
+        while(jacobi(w, N) != -1){
+            this.w = numericUtil.getRandomNumber(N.bitLength()).mod(N);
+        };
+
+        String oracle = N.toString(16)  + this.w.toString(16);
+        
         BigInteger[] y_arr = new BigInteger[security];
-        BigInteger[] x_arr = new BigInteger[security];
-        BigInteger[] a_arr = new BigInteger[security];
-        BigInteger[] b_arr = new BigInteger[security];
+        BigInteger p_inv = p.modInverse(q);
+        BigInteger q_inv = q.modInverse(p);
+        BigInteger phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
+        BigInteger pow = N.modInverse(phi);
+
+        this.x_arr = new BigInteger[security];
+        this.a_arr = new BigInteger[security];
+        this.b_arr = new BigInteger[security];
+        this.z_arr = new BigInteger[security];
+        // this.y_arr = new BigInteger[security];
+
         for (int i = 0; i < security; i++) {
             // TODO: to be relaced by FS scheme
-            y_arr[i] = numericUtil.getRandomNumber(N.toString(2).length()).mod(N);
+            String rnd = HashUtil.getSHA( oracle + 4*i, "SHA-512") + HashUtil.getSHA( oracle + 4*i + 1, "SHA-512") + HashUtil.getSHA( oracle + 4*i + 2, "SHA-512") + HashUtil.getSHA( oracle + 4*i + 3, "SHA-512");
+            y_arr[i] = new BigInteger(rnd, 16).mod(N);
+            BigInteger[] result = getQuaticSqrt(N, p, q, p_inv, q_inv, w, y_arr[i]);
+            this.x_arr[i] = result[0];
+            this.a_arr[i] = result[1];
+            this.b_arr[i] = result[2];
+            this.z_arr[i] = y_arr[i].modPow(pow, N);
         }
-
-
-
-
 
         return true;
     }
 
-    public BigInteger getJacobi(BigInteger p, BigInteger q) {
-        BigInteger N = p.multiply(q);
-        BigInteger w = numericUtil.getRandomNumber(N.toString(2).length()).mod(N);
-        do {
-            BigInteger a = numericUtil.quadraticResidue(w, p);
-            BigInteger b = numericUtil.quadraticResidue(w, q);
-            BigInteger c = a.multiply(b);
-            if (c.compareTo(BigInteger.ONE.negate()) == 0) {
-                return w;
-            }
-            w = numericUtil.getRandomNumber(N.toString(2).length()).mod(N);
-        } while (true);
+    public boolean verify(BigInteger N) {
+        // assert (N is an odd composite number)
+        if (N.mod(BigInteger.TWO).compareTo(BigInteger.ZERO) == 0 || N.isProbablePrime(100)) {
+            System.out.println("N should be an odd composite number");
+            return false;
+        }
 
-    }
+        if (this.a_arr.length == 0 || this.a_arr.length != this.b_arr.length || this.a_arr.length != this.z_arr.length || this.a_arr.length != this.x_arr.length) {
+            System.out.println("invalid proof length");
+            return false;
+        }
+
+        BigInteger[] y_arr = new BigInteger[this.a_arr.length];
+
+        for (int i = 0; i < this.a_arr.length; i++) {
+            String oracle = N.toString(16)  + this.w.toString(16);
+            String rnd = HashUtil.getSHA( oracle + 4*i, "SHA-512") + HashUtil.getSHA( oracle + 4*i + 1, "SHA-512") + HashUtil.getSHA( oracle + 4*i + 2, "SHA-512") + HashUtil.getSHA( oracle + 4*i + 3, "SHA-512");
+            y_arr[i] = new BigInteger(rnd, 16).mod(N);
+            // y_arr[i] = new BigInteger(HashUtil.getSHA( oracle + i, "SHA-512"), 16).modPow(BigInteger.valueOf(4),N);
+        
+            // assert (z^N = r mod N)
+            if (z_arr[i].modPow(N, N).compareTo(y_arr[i]) != 0) {
+                System.out.println("z^N != r mod N");
+                return false;
+            }
+
+            // c = (-1)^a * w^b * r mod N
+            // assert (x^4 = c mod N)
+            BigInteger c = BigInteger.ONE.negate().modPow(a_arr[i], N).multiply(w.modPow(b_arr[i], N)).multiply(y_arr[i]).mod(N);
+            // System.out.println("c:"+c);
+            if (x_arr[i].modPow(BigInteger.valueOf(4), N).compareTo(c) != 0) {
+                System.out.println("x^4 != (-1)^a * w^b * r mod N");
+                return false;
+            }
+        }
     
+        System.out.println("verify success");
+        return true;
+    }
+
     // https://en.wikipedia.org/wiki/Jacobi_symbol#Calculating_the_Jacobi_symbol
     public int jacobi(BigInteger a, BigInteger n) {
         if (n.compareTo(BigInteger.ZERO) == -1 || n.mod(BigInteger.TWO).compareTo(BigInteger.ZERO) == 0) {
@@ -78,14 +129,17 @@ public class PaillierBlumProof {
     }
 
 
-    public BigInteger[] getQuaticSqrt(BigInteger N, BigInteger p, BigInteger q, BigInteger p_inv, BigInteger q_inv, BigInteger w, BigInteger r, BigInteger root, BigInteger a, BigInteger b) {
+    public BigInteger[] getQuaticSqrt(BigInteger N, BigInteger p, BigInteger q, BigInteger p_inv, BigInteger q_inv, BigInteger w, BigInteger r) {
         Pocklington pocklington = new Pocklington();
-        BigInteger a1;
-        BigInteger b1;
+        NumericUtil numericUtil = new NumericUtil();
+
         boolean flag_1 = false;
         boolean flag_2 = false;
         BigInteger quadratic_root_1 = BigInteger.ZERO;
         BigInteger quadratic_root_2 = BigInteger.ZERO;
+        BigInteger a = BigInteger.ZERO;
+        BigInteger b = BigInteger.ZERO;
+        BigInteger root = BigInteger.ZERO;
 
         BigInteger[] result = {BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO};
 
@@ -94,8 +148,8 @@ public class PaillierBlumProof {
         BigInteger[] r_arr = new BigInteger[4];
         r_arr[0] = r;
         r_arr[1] = r.multiply(BigInteger.ONE.negate());
-        r_arr[2] = r.multiply(w);
-        r_arr[3] = r.multiply(w).multiply(BigInteger.ONE.negate());
+        r_arr[2] = r.multiply(this.w);
+        r_arr[3] = r.multiply(this.w).multiply(BigInteger.ONE.negate());
 
         // System.out.println("r_arr:"+r_arr[0] + " " + r_arr[1] + " " + r_arr[2] + " " + r_arr[3]);
 

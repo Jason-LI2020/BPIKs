@@ -15,6 +15,19 @@ public class NumericUtil {
         return new BigInteger(sb.toString(), 2); 
     }
 
+    public BigInteger getRandomWithinRange(BigInteger a) {
+        BigInteger b;
+        do {
+            b = getRandomNumber(a.bitLength());
+        } while (b.compareTo(a) >= 0);
+        return b;
+    }
+
+    public BigInteger prime(int bitlength) {
+        BigInteger p= getRandomNumber(bitlength);
+        return p.nextProbablePrime();
+    }
+
     public BigInteger safePrime(int bitlength) {
         BigInteger p, q;
         q = getRandomNumber(bitlength - 1);

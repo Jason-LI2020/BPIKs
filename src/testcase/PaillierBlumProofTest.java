@@ -21,59 +21,53 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 
 // Prover claims that N is a Paillier Blum modulus, i.e. gcd(N, phi(N)) = 1, N = p * q, and p, q % 4 = 3
-// https://eprint.iacr.org/2020/492.pdf, chapter 4.3
+// An attack raised from lacks of this proof: 
+// https://www.fireblocks.com/blog/gg18-and-gg20-paillier-key-vulnerability-technical-report
+// https://mp.weixin.qq.com/s/Tukkx6Tb6Fe_FVc1Bb0v5w
+// solution: https://eprint.iacr.org/2020/492.pdf, chapter 4.3
 public class PaillierBlumProofTest {
         public static void main(String[] args) throws HomomorphicException{
+
+            validProofTest();
+
+            invalidProofTest();
+       
+
+    }
+
+    private static void validProofTest() {
         // set up
-        PaillierBlumProof pail_blum_proof = new PaillierBlumProof();
+        PaillierBlumProof pailBlumProof = new PaillierBlumProof();
         NumericUtil numericUtil = new NumericUtil();
         int security = 256;
         BigInteger p = numericUtil.safePrime(security);
         BigInteger q = numericUtil.safePrime(security);
         BigInteger N = p.multiply(q);
+        System.out.println("p % 4 : "+p.mod(BigInteger.valueOf(4))); 
+        System.out.println("q % 4 : "+q.mod(BigInteger.valueOf(4))); 
 
-        // prove
-        BigInteger w = numericUtil.getRandomNumber(N.bitLength()).mod(N);
-        while( pail_blum_proof.jacobi(w, N) != -1){
-            w = numericUtil.getRandomNumber(N.bitLength()).mod(N);
-        };
-
-        BigInteger root = BigInteger.ZERO;
-        BigInteger a = BigInteger.ZERO;
-        BigInteger b = BigInteger.ZERO;
-        BigInteger r = numericUtil.getRandomNumber(N.bitLength()).mod(N);
-
-        BigInteger p_inv = p.modInverse(q);
-        BigInteger q_inv = q.modInverse(p);
-        BigInteger[] result = pail_blum_proof.getQuaticSqrt(N, p, q, p_inv, q_inv, w, r, root, a, b);
-
-        BigInteger phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
-        BigInteger pow = N.modInverse(phi);
-        BigInteger z = r.modPow(pow, N);
-
-        // verify
-        // assert (N is an odd composite number)
-        if (N.mod(BigInteger.TWO).compareTo(BigInteger.ZERO) == 0 || N.isProbablePrime(100)) {
-            System.out.println("N should be an odd composite number");
-            return;
-        }
-
-        // assert (z^N = r mod N)
-        if (z.modPow(N, N).compareTo(r) != 0) {
-            System.out.println("z^N != r mod N");
-            return;
-        }
-
-        // c = (-1)^a * w^b * r mod N
-        // assert (x^4 = c mod N)
-        BigInteger c = BigInteger.ONE.negate().modPow(result[1], N).multiply(w.modPow(result[2], N)).multiply(r).mod(N);
-        if (result[0].modPow(BigInteger.valueOf(4), N).compareTo(c) != 0) {
-            System.out.println("x^4 != (-1)^a * w^b * r mod N");
-            return;
-        }
-
-        System.out.println("verify success");
-
+        // This is a honest prover
+        pailBlumProof.prove(N, p, q, security);
+        boolean ok = pailBlumProof.verify(N);
+        System.out.println("honest proof verification: "+ok);
     }
 
+    private static void invalidProofTest() {
+        // set up
+        PaillierBlumProof pailBlumProof = new PaillierBlumProof();
+        NumericUtil numericUtil = new NumericUtil();
+        int security = 256;
+
+        // This is a malicious prover
+        BigInteger p = numericUtil.prime(security);
+        BigInteger q = numericUtil.prime(security);
+        BigInteger N = p.multiply(q);
+
+
+        System.out.println("p % 4 : "+p.mod(BigInteger.valueOf(4))); 
+        System.out.println("q % 4 : "+q.mod(BigInteger.valueOf(4))); 
+        pailBlumProof.prove(N, p, q, security);
+        boolean ok = pailBlumProof.verify(N);
+        System.out.println("malicious proof verification: "+ok);
+    }
 }
