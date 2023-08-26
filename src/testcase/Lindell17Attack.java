@@ -24,8 +24,8 @@ public class Lindell17Attack {
         System.out.println("==========================  invalid zk proof aff-g  ===============================");
         lindell_test_zk_invalid();
         
-        // System.out.println("==========================  valid zk proof aff-g  ===============================");
-        // lindell_test_zk_valid();
+        System.out.println("==========================  valid zk proof aff-g  ===============================");
+        lindell_test_zk_valid();
 
     }
 
