@@ -170,6 +170,24 @@ public class ECDSAcore {
         }
     }
 
+    public boolean verifyWithResult(String message,String rS,String sS,Point publicKeyPoint){
+        BigInteger r = new BigInteger(rS,16);
+        BigInteger s = new BigInteger(sS,16);
+        BigInteger w = s.modInverse(n);
+        BigInteger u1 = w.multiply(new BigInteger(message,16)).mod(n);
+        BigInteger u2 = w.multiply(r).mod(n);
+        Point point = add(fastMultiply(u1),fastMultiplyWithPoint(u2,publicKeyPoint));
+        System.out.println(publicKeyPoint);
+        System.out.println(point);
+        if(r.equals(point.getX().mod(n))){
+            System.out.println("Verifyed");
+            return true;
+        }else {
+            System.out.println("error!");
+            return false;
+        }
+    }
+
 
     public Point fastMultiply(BigInteger d){
         Point point = G;

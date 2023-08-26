@@ -24,8 +24,8 @@ public class Lindell17Attack {
         System.out.println("==========================  invalid zk proof aff-g  ===============================");
         lindell_test_zk_invalid();
         
-        System.out.println("==========================  valid zk proof aff-g  ===============================");
-        lindell_test_zk_valid();
+        // System.out.println("==========================  valid zk proof aff-g  ===============================");
+        // lindell_test_zk_valid();
 
     }
 
@@ -42,6 +42,10 @@ public class Lindell17Attack {
         // ============================ 1. key generation ===============================
         BigInteger key1 = pedersen.getRandomNumber(256);
         BigInteger key2 = pedersen.getRandomNumber(256);
+
+        System.out.println("key1:"+key1.toString(2));
+
+
         BigInteger k1 = pedersen.getRandomNumber(256);
         BigInteger k2 = pedersen.getRandomNumber(256);
         
@@ -109,7 +113,85 @@ public class Lindell17Attack {
 
         // ============================ 3. signature verification ===============================
         // 6. signature verification 
-        acore.verify(message, r.toString(16), s, P);
+        boolean ok = acore.verifyWithResult(message, r.toString(16), s, P);
+
+        // ============================ 4. next round attack ===============================
+        k1 = pedersen.getRandomNumber(256);
+        k2 = pedersen.getRandomNumber(256);
+
+        R1 = acore.fastMultiply(k1);
+        R2 = acore.fastMultiply(k2);
+        R = acore.fastMultiplyWithPoint(k2, R1);
+        r = R.getX().mod(n);
+
+        message = "4243ab5ca30bb34fe154a0bd49fc4b9b40359d88771ebbbdefd2356a805af66b";
+        m = new BigInteger(message,16);
+
+        ro = pedersen.getRandomNumber(256);
+        y = ro.multiply(n).add(k2.modInverse(n).multiply(m.add(r.multiply(key2))).mod(n));
+
+        // yita0 = yb * r * (k2^(-1) mod n)
+        // yita1 = yb * r * (k2^(-1) mod n)*4
+        // yita1 = yita1 + n  if yita1 is even
+        // yita1 = yita1 *(4^(-1) mod N)) mod N
+
+        // yita = yita0 - yita1
+        BigInteger yb = ok? BigInteger.ZERO : BigInteger.ONE;
+        System.out.println("yb:"+yb);
+        BigInteger yita0 = yb.multiply(r).multiply(k2.modInverse(n));
+        BigInteger yita1 = yb.multiply(r).multiply(k2.modInverse(n)).multiply(BigInteger.valueOf(4));
+        if (yb.compareTo(BigInteger.ZERO) == 1 && yita1.mod(BigInteger.valueOf(4)).compareTo(BigInteger.ZERO) == 0){
+            yita1 = yita1.add(n);
+        }
+        // if (ok && yita1.mod(BigInteger.valueOf(4)).compareTo(BigInteger.ZERO) == 0){
+        //     yita1 = yita1.add(n);
+        // }
+        yita1 = yita1.multiply(BigInteger.valueOf(4).modInverse(N)).mod(N);
+        BigInteger yita = yita0.subtract(yita1).mod(n);
+        // System.out.println("yita.lenth:"+yita.bitLength());
+
+        // c1 = (1 + N)^y * rou^N mod N^2 = enc(y, pk)
+        rou = pedersen.getRandomNumber(256);
+        c1 = (BigInteger.ONE.add(N)).modPow(y.add(yita), NN).multiply(rou.modPow(N, NN)).mod(NN);
+
+        // make sure _r is odd
+        _r = r;
+        if (r.mod(BigInteger.TWO).compareTo(BigInteger.ZERO) == 0) {_r = r.add(n);}
+
+        // d = 4 * k2^(-1) mod n, if d is even, d = d + n
+        // k2_inv = (2^(-1) mod N) * d
+        // x = k2_inv * _r
+        d = BigInteger.valueOf(4).multiply(k2.modInverse(n)).multiply(_r);
+        if (d.mod(BigInteger.TWO).compareTo(BigInteger.ZERO) == 0){
+            d = d.add(n);
+        }  
+        x =  BigInteger.valueOf(4).modInverse(N).multiply(d).mod(N);
+        System.out.println("x.length:"+x.toString(2).length());
+
+        // x = k2^(-1) * _r
+        // BigInteger x = k2.modInverse(N).multiply(_r).mod(N);
+        X = acore.fastMultiply(x);
+
+        // c2 = mul(ckey，x)
+        c2 = PaillierCipher.multiply(ckey, x, pk); 
+
+        // c3 = add(c1, c2）
+        c = PaillierCipher.add(c1, c2, pk);
+
+        // 5. s= k1^(−1)*s_
+        s_ = PaillierCipher.decrypt(c, sk);
+
+        // String s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
+        s = k1.modInverse(n).multiply(s_).mod(n).toString(16);
+
+        // 6. signature verification 
+        ok = acore.verifyWithResult(message, r.toString(16), s, P);
+
+
+
+
+
+        
 
         // ============================ 4. generate zk proof ===============================
         // x = k2^(-1) * _r, maximum length of x is 2 * 256 = 512 bits
